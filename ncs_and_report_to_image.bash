@@ -119,7 +119,7 @@ myself=$(basename $0)
 myname=$(uname -n)
 
 base=/usr/local/ncs
-conf=${base}/ncs.conf.${myname}
+conf=${base}/ncs.conf
 [ -x $conf ] || exit 1
 . $conf
 

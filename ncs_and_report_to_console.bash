@@ -418,7 +418,7 @@ trt_file=/var/log/nagios/$myself.trt_last.txt
 filetemp=$(mktemp /tmp/$myself.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
 
 base=/usr/local/ncs
-conf=${base}/ncs.conf.${myname}
+conf=${base}/ncs.conf
 [ -x $conf ] || exit 1
 . $conf
 

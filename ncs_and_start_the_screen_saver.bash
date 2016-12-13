@@ -35,7 +35,7 @@ myname=$(uname -n)
 
 base=/usr/local/ncs
 script=${base}/ncs_and_report_to_screen_saver.bash
-conf=${base}/ncs.conf.${myname}
+conf=${base}/ncs.conf
 [ -x $conf ] || exit 1
 . $conf
 

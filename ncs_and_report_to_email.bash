@@ -145,11 +145,11 @@ tmp1=$(mktemp /tmp/$myself.output.ansi.XXXXXXXXXX) || { echo "Failed to create t
 tmp2=$(mktemp /tmp/$myself.output.html.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
 
 base=/usr/local/ncs
-check=$base/ncs_and_report_to_console.bash 
-send_email=$base/resources/send_email.php
-ansi2html=$base/resources/ansi2html.sh 
+check=${base}/ncs_and_report_to_console.bash 
+send_email=${base}/resources/send_email.php
+ansi2html=${base}/resources/ansi2html.sh 
 
-conf=${base}/bin/nagios/ncs/ncs.conf.${myname}
+conf=${base}/ncs.conf
 [ -x $conf ] || exit 1
 . $conf
 

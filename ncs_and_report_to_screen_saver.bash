@@ -100,8 +100,8 @@ refresh=60
 terminal=$(tty)
 
 base=/usr/local/ncs
-check=$base/ncs_from_local_or_remote.bash
-conf=${base}/ncs.conf.${myname}
+check=${base}/ncs_from_local_or_remote.bash
+conf=${base}/ncs.conf
 [ -x $conf ] || exit 1
 . $conf
 
