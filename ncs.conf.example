@@ -1,0 +1,32 @@
+#!/bin/bash
+
+lang=en
+name=01
+
+base=/usr/local/ncs
+ncs_and_report_to_console=${base}/ncs_and_report_to_console.bash
+ncs_from_local_or_remote=${base}/ncs_from_local_or_remote.bash
+
+live_sock=/var/log/nagios/rw/live
+nagiostats=/usr/local/nagios/bin/nagiostats
+console=/dev/pts/1
+
+mail_background=screen_saver #or terminal
+mail_to=nelbren@gmail.com
+mail_from=$mail_to
+
+dir_mp3=/usr/local/ncs/resources/alarms
+mp3_ok="Temple Bell-SoundBible.com-756181215.mp3"
+mp3_warning="Loud_Alarm_Clock_Buzzer-Muk1984-493547174.mp3"
+mp3_critical="Siren_Noise-KevanGC-1337458893.mp3"
+mp3_unknown="Industrial Alarm-SoundBible.com-1012301296.mp3"
+
+domain=npr3s.com
+
+server_01_name=01
+server_01_host=nr01
+server_01_port=22
+
+server_02_name=02
+server_02_host=nr03
+server_02_port=22
