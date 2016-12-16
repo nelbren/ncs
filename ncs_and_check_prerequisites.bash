@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# ncs_and_check.bash
+# ncs_and_check_prerequisites.bash
 #
-# v1.0.0 - 2016-12-13 - Nelbren <nelbren@gmail.com>
+# v1.0.0 - 2016-12-16 - Nelbren <nelbren@gmail.com>
 #
 
 show_task() {
@@ -25,7 +25,7 @@ check_task() {
     color 0
     echo -n "[ OK ]"
   else
-    if [ -n "$warning" ] ; then
+    if [ "$warning" == "1" ] ; then
       color 1
     else
       color 2
@@ -90,7 +90,7 @@ check_param_comun() {
               r=1
             fi;;
 executable) if [ -n "$v1" ]; then
-              owner=$(stat -c '%U' $v)
+              owner=$(stat -c '%U' $v 2>/dev/null)
               if [ "$owner" == "$v1" ]; then
                 r=0
               else
@@ -108,7 +108,7 @@ executable) if [ -n "$v1" ]; then
               fi
             fi;;
     socket) if [ -n "$v1" ]; then
-              owner=$(stat -c '%U' $v)
+              owner=$(stat -c '%U' $v 2>/dev/null)
               if [ "$owner" == "$v1" ]; then
                 r=0
               else
@@ -163,8 +163,12 @@ check_param() {
           check_param_comun $p "$v1" executable;;
     ncs_from_local_or_remote) v1=$base/$(basename "$v")
           check_param_comun $p "$v1" executable;;
-    live_sock) check_param_comun $p "$v" socket nagios;;
-    nagiostats) check_param_comun $p "$v" executable nagios;;
+    live_sock) warning=1
+               check_param_comun $p "$v" socket nagios
+               warning=0;;
+    nagiostats) warning=1
+                check_param_comun $p "$v" executable nagios
+                warning=0;;
     console) check_param_comun $p "$v" special;;
     mail_background) check_param_comun $p "$v" choices "screen_saver" "terminal";;
     mail_to) check_param_comun $p "$v" different "";;
