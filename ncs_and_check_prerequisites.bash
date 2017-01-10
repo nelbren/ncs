@@ -3,6 +3,7 @@
 # ncs_and_check_prerequisites.bash
 #
 # v1.0.0 - 2016-12-16 - Nelbren <nelbren@gmail.com>
+# v1.0.1 - 2017-01-10 - Nelbren <nelbren@gmail.com>
 #
 
 show_task() {
@@ -206,6 +207,7 @@ check_conf2() {
 check_files1() {
   check_param_comun "ansi2html" "$base/resources/ansi2html.sh" executable
   check_param_comun "send_email.php" "$base/resources/send_email.php" executable
+  check_param_comun "unixcat" "/usr/local/bin/unixcat" executable
 }
 
 check_files2() {
@@ -224,7 +226,7 @@ check_conf1
 check_conf2
 echo -e "\nFILES NEEDED:\n"
 check_files1
-echo -e "\nFILES OPTIOMAL:\n"
+echo -e "\nFILES OPTIONAL:\n"
 check_files2
 
 exit

@@ -3,6 +3,7 @@
 # ncs_and_report_to_console.bash
 #
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
+# v1.0.1 - 2017-01-10 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -167,26 +168,26 @@ line_space() {
 }
 
 test_live_sock() {
-  echo -e "GET status" | unixcat $live_sock 2>/dev/null 1>&2
+  echo -e "GET status" | $unixcat $live_sock 2>/dev/null 1>&2
   live_sock_state=$? 
 }
 
 host_state() {
-  state3=$(echo -e "GET hosts\nColumns: state\nFilter: name = $host_name\n" | unixcat $live_sock 2>/dev/null)
+  state3=$(echo -e "GET hosts\nColumns: state\nFilter: name = $host_name\n" | $unixcat $live_sock 2>/dev/null)
 }
 
 stats() {
-  service_ok=$(echo -e "GET services\nStats: state = 0" | unixcat $live_sock 2>/dev/null)
+  service_ok=$(echo -e "GET services\nStats: state = 0" | $unixcat $live_sock 2>/dev/null)
   [ -z "$service_ok" ] && service_ok="-1"
-  service_warning=$(echo -e "GET services\nStats: state = 1" | unixcat $live_sock 2>/dev/null)
+  service_warning=$(echo -e "GET services\nStats: state = 1" | $unixcat $live_sock 2>/dev/null)
   [ -z "$service_warning" ] && service_warning="-1"
-  service_critical=$(echo -e "GET services\nStats: state = 2" | unixcat $live_sock 2>/dev/null)
+  service_critical=$(echo -e "GET services\nStats: state = 2" | $unixcat $live_sock 2>/dev/null)
   [ -z "$service_critical" ] && service_critical="-1"
-  service_unknown=$(echo -e "GET services\nStats: state = 3" | unixcat $live_sock 2>/dev/null)
+  service_unknown=$(echo -e "GET services\nStats: state = 3" | $unixcat $live_sock 2>/dev/null)
   [ -z "$service_unknown" ] && service_unknown="-1"
-  hosts_up=$(echo -e "GET hosts\nStats: state = 0" | unixcat $live_sock 2>/dev/null)
+  hosts_up=$(echo -e "GET hosts\nStats: state = 0" | $unixcat $live_sock 2>/dev/null)
   [ -z "$hosts_up" ] && hosts_up="-1"
-  hosts_down=$(echo -e "GET hosts\nStats: state = 1" | unixcat $live_sock 2>/dev/null)
+  hosts_down=$(echo -e "GET hosts\nStats: state = 1" | $unixcat $live_sock 2>/dev/null)
   [ -z "$hosts_down" ] && hosts_down="-1"
 }
 
@@ -208,7 +209,7 @@ get_service_with_state() {
   fi
 
   IFSOLD=$IFS; IFS=";"
-  echo -e "GET services\nColumns: comments_with_info display_name host_comments_with_info host_name host_services_with_info state\n${filtro}" | unixcat $live_sock 2>&1 | \
+  echo -e "GET services\nColumns: comments_with_info display_name host_comments_with_info host_name host_services_with_info state\n${filtro}" | $unixcat $live_sock 2>&1 | \
   while read comments_with_info display_name host_comments_with_info host_name host_services_with_info state2; do
     IFS=$IFSOLD
     flapping=$(echo "$comments_with_info" | grep "Nagios Process")
@@ -414,6 +415,7 @@ cleanup() {
 
 myself=$(basename $0)
 myname=$(uname -n)
+unixcat=/usr/local/bin/unixcat
 trt_file=/var/log/nagios/$myself.trt_last.txt
 filetemp=$(mktemp /tmp/$myself.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
 
