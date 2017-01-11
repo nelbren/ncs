@@ -16,6 +16,7 @@ use() {
   echo -e "Where: "
   echo -e "       -sa|--showall\t\t\tShow all state of Hosts/Services"
   echo -e "       -ss|--sumarystate\t\tShow only the Summary State"
+  echo -e "       -min|--minimal\t\t\tShow the Summary State in minimal space"
   echo -e "       -q|--quiet\t\t\tGet only the state"
   echo -e "       -is=STATE|--initialstate=STATE\tSet the previous state"
   echo -e "       -mc=COLS|--maxcols=COLS\t\tSet the max columns of console"
@@ -29,6 +30,7 @@ params() {
     case $i in
       -sa|--showall) all=1; shift;;
       -ss|--sumarystate) sumarystate=1; shift;;
+      -min|--minimal) minimal=1; shift;;
       -q|--quiet) silent=1; shift;;
       -is=*|--initialstate=*) state_previous="${i#*=}"; shift;;
       -mc=*|--maxcols=*) max_cols="${i#*=}"; shift;;
@@ -43,6 +45,7 @@ params() {
   [ -z "$silent" ] && silent=0
   [ -z "$all" ] && all=0
   [ -z "$sumarystate" ] && sumarystate=0
+  [ -z "$minimal" ] && minimal=0
   if [ -z "$max_cols" ]; then
     max_cols=$(tput cols)
     if [ "$max_cols" == "0" ]; then
@@ -51,6 +54,32 @@ params() {
   fi
   #echo $state_previous $silent $max_cols $all
 }
+
+color_msg() {
+  pstate=$1
+  message=$2
+  echo -en "\e[0m"
+  if [ "$INVERT" == "0" ]; then
+    case $pstate in
+      $STATE_OK) echo -en "\e[0m\e[38;5;10m";;
+      $STATE_WARNING) echo -en "\e[0m\e[38;5;11m";;
+      $STATE_CRITICAL) echo -en "\e[0m\e[38;5;9m";;
+      $STATE_UNKNOWN) echo -en "\e[0m\e[38;5;5m";;
+      $STATE_INFO) echo -en "\e[1;37m";;
+    esac
+  else
+    case $pstate in
+      $STATE_OK) echo -en "\e[30;48;5;82m";;
+      $STATE_WARNING) echo -en "\e[30;48;5;11m";;
+      $STATE_CRITICAL) echo -en "\e[30;48;5;9m";;
+      $STATE_UNKNOWN) echo -en "\e[30;48;5;5m";;
+      $STATE_INFO) echo -en "\e[7;49;97m";;
+    esac
+  fi
+  echo -n "$message"
+  echo -en "\e[0m"
+}
+
 
 color_background() {
   state=$1
@@ -308,7 +337,7 @@ msg() {
 }
 
 header() {
-  [ "$silent" == "1" -o "$sumarystate" == "1" ] && return
+  [ "$silent" == "1" -o "$sumarystate" == "1" -o "$minimal" == "1" ] && return
   color_background $state_previous
   datehour=$(date +'%Y-%m-%d %H:%M:%S')
   title=$(msg REPORT_PROBLEM)
@@ -317,7 +346,7 @@ header() {
 }
 
 middle() {
-  [ "$silent" == "1" -o "$sumarystate" == "1" ] && return
+  [ "$silent" == "1" -o "$sumarystate" == "1" -o "$minimal" == "1" ] && return
   if [ "$first" == "1" ]; then
     title=$(msg MESSAGE_OK)
     [ "$state_previous" == "9" ] && echo -en "\e[0m\e[38;5;10m"
@@ -330,15 +359,74 @@ middle() {
   line_single " $title " 0
 }
 
-footer() {
-  [ "$silent" == "1" ] && return
-  if [ "$first" == "0" ]; then
-    echo "";
+
+check_dt() {
+  dt=$value
+  dtn=$(date +'%Y%m%d%H%M%S')
+  diff=$((dtn-dt))
+  echo -n ${label}:
+  state=$STATE_OK 
+  [ $diff -gt 1 ] && state=$STATE_CRITICAL
+  color_msg $state $dt
+}
+
+check_info() {
+  echo -n ${label}:
+  color_msg $STATE_INFO $value
+}
+
+check_hosts() {
+  echo -n ${label}:
+  value=$hosts_up
+  if [ "$value" -gt "0" ]; then
+    color_msg $STATE_OK "UP=$value"
+    before=1
   fi
-  if [ "$sumarystate" == "1" ]; then
-    color_background $state_previous
-    line_double "" 0
+  value=$hosts_down
+  if [ "$value" -gt "0" ]; then
+    [ "$before" == "1" ] && color_msg $STATE_INFO "/"
+    color_msg $STATE_CRITICAL "DOWN=$value"
   fi
+}
+
+check_services() {
+  echo -n ${label}:
+  value=$service_ok
+  if [ "$value" -gt "0" ]; then
+    color_msg $STATE_OK "OK=$value"
+    before=1
+  fi
+  value=$service_warning
+  if [ "$value" -gt "0" ]; then
+    [ "$before" == "1" ] && color_msg $STATE_INFO "/"
+    color_msg $STATE_WARNING "WARN=$value"
+    before=1
+  fi
+  value=$service_unknown
+  if [ "$value" -gt "0" ]; then
+    [ "$before" == "1" ] && color_msg $STATE_INFO "/"
+    color_msg $STATE_UNKNOWN "UNKN=$value"
+    before=1
+  fi
+  value=$service_critical
+  if [ "$value" -gt "0" ]; then
+    [ "$before" == "1" ] && color_msg $STATE_INFO "/"
+    color_msg $STATE_CRITICAL "CRIT=$value"
+  fi
+}
+
+minimal() {
+  stats
+  color_msg $STATE_INFO "[NAGIOS]"; 
+  echo -n " "; label="DT"; value=$(date +'%Y%m%d%H%M%S'); check_dt
+  trt=$(echo $total_running_time | tr -d "[ ]")
+  echo -n " "; label="UPTIME"; value="$trt"; check_info
+  echo -n " "; label="HOSTS"; check_hosts
+  echo -n " "; label="SERVICES"; check_services
+  echo ""
+}
+
+summary() {
   color_background $state_previous
   title=$(msg SUMMARY)
   line_single " $title " 0
@@ -370,7 +458,23 @@ footer() {
   color_service $trt_color "$title: $total_running_time"
   #echo " ($trt_num_seconds > $trt_num_last)"
   color_background $state_previous
-  echo ""; line_double "" 0
+  if [ "$sumarystate" == "1" ]; then
+    echo ""; line_single "" 0
+  else
+    echo ""; line_double "" 0
+  fi
+}
+
+footer() {
+  [ "$silent" == "1" ] && return
+  if [ "$first" == "0" ]; then
+    echo "";
+  fi
+  if [ "$minimal" == "1" ]; then
+    minimal
+  else
+    summary
+  fi
 }
 
 process_info() {
@@ -413,6 +517,28 @@ cleanup() {
   [ -r $filetemp ] && rm $filetemp
 }
 
+problems_or_all() {
+  [ "$silent" == "1" -o "$sumarystate" == "1" -o "$minimal" == "1" ] && return
+  if [ "$all" == "1" ]; then
+    get_service_with_state -1 # ANY
+  else
+    get_service_with_state 2 # CRITICAL
+    get_service_with_state 3 # UNKNOWN
+    get_service_with_state 1 # WARNING
+  fi
+}
+
+problems_scheduled() {
+  [ "$silent" == "1" -o "$sumarystate" == "1" -o "$minimal" == "1" ] && return
+  if [ "$all" == "1" ]; then
+    get_service_with_state -1 scheduled # ANY
+  else
+    get_service_with_state 2 scheduled # CRITICAL
+    get_service_with_state 3 scheduled # UNKNOWN
+    get_service_with_state 1 scheduled # WARNING
+  fi
+}
+
 myself=$(basename $0)
 myname=$(uname -n)
 unixcat=/usr/local/bin/unixcat
@@ -427,6 +553,14 @@ conf=${base}/ncs.conf
 set +m
 shopt -s lastpipe
 
+STATE_OK=0
+STATE_WARNING=1
+STATE_CRITICAL=2
+STATE_UNKNOWN=3
+STATE_DEPENDENT=4
+STATE_INFO=5
+INVERT=1
+
 params "$@"
 
 test_live_sock
@@ -439,24 +573,12 @@ fi
 header
 
 first=1
-if [ "$all" == "1" ]; then
-  get_service_with_state -1 # ANY
-else
-  get_service_with_state 2 # CRITICAL
-  get_service_with_state 3 # UNKNOWN
-  get_service_with_state 1 # WARNING
-fi
+problems_or_all
 
 middle
 
 first=1
-if [ "$all" == "1" ]; then
-  get_service_with_state -1 scheduled # ANY
-else
-  get_service_with_state 2 scheduled # CRITICAL
-  get_service_with_state 3 scheduled # UNKNOWN
-  get_service_with_state 1 scheduled # WARNING
-fi
+problems_scheduled
 
 process_info
 footer
