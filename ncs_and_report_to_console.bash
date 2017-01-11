@@ -4,6 +4,7 @@
 #
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
 # v1.0.1 - 2017-01-10 - Nelbren <nelbren@gmail.com>
+# v1.0.2 - 2017-01-11 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -57,29 +58,37 @@ params() {
 
 color_msg() {
   pstate=$1
-  message=$2
-  echo -en "\e[0m"
+  message1=$2
+  message2=$3
+  before=$4
   if [ "$INVERT" == "0" ]; then
     case $pstate in
-      $STATE_OK) echo -en "\e[0m\e[38;5;10m";;
-      $STATE_WARNING) echo -en "\e[0m\e[38;5;11m";;
-      $STATE_CRITICAL) echo -en "\e[0m\e[38;5;9m";;
-      $STATE_UNKNOWN) echo -en "\e[0m\e[38;5;5m";;
-      $STATE_INFO) echo -en "\e[1;37m";;
+      $STATE_OK)       color="\e[0m\e[38;5;10m";;
+      $STATE_WARNING)  color="\e[0m\e[38;5;11m";;
+      $STATE_CRITICAL) color="\e[0m\e[38;5;9m";;
+      $STATE_UNKNOWN)  color="\e[0m\e[38;5;5m";;
+      $STATE_INFO)     color="\e[1;37m";;
     esac
   else
     case $pstate in
-      $STATE_OK) echo -en "\e[30;48;5;82m";;
-      $STATE_WARNING) echo -en "\e[30;48;5;11m";;
-      $STATE_CRITICAL) echo -en "\e[30;48;5;9m";;
-      $STATE_UNKNOWN) echo -en "\e[30;48;5;5m";;
-      $STATE_INFO) echo -en "\e[7;49;97m";;
+      $STATE_OK)       color="\e[30;48;5;82m";;
+      $STATE_WARNING)  color="\e[30;48;5;11m";;
+      $STATE_CRITICAL) color="\e[30;48;5;9m";;
+      $STATE_UNKNOWN)  color="\e[30;48;5;5m";;
+      $STATE_INFO)     color="\e[7;49;97m";;
     esac
   fi
-  echo -n "$message"
-  echo -en "\e[0m"
+  reset="\e[0m"
+  line2=$(echo -en $reset)${message1}$(echo -en $color)${message2}$(echo -en $reset)
+  if [ "$before" == "1" ]; then
+    line=${line2}${line}
+  else
+    line=${line}${line2}
+  fi
+  if [ "$pstate" -gt "$bstate" -a "$bstate" != "$STATE_CRITICAL" -a "$pstate" != "$STATE_INFO" ]; then
+    bstate=$pstate
+  fi
 }
-
 
 color_background() {
   state=$1
@@ -364,66 +373,63 @@ check_dt() {
   dt=$value
   dtn=$(date +'%Y%m%d%H%M%S')
   diff=$((dtn-dt))
-  echo -n ${label}:
   state=$STATE_OK 
   [ $diff -gt 1 ] && state=$STATE_CRITICAL
-  color_msg $state $dt
+  color_msg $state DT: $dt
 }
 
-check_info() {
-  echo -n ${label}:
-  color_msg $STATE_INFO $value
+check_uptime() {
+  color_msg $STATE_INFO UPTIME: $value
 }
 
 check_hosts() {
-  echo -n ${label}:
+  line="$line HOSTS:"
   value=$hosts_up
   if [ "$value" -gt "0" ]; then
-    color_msg $STATE_OK "UP=$value"
+    color_msg $STATE_OK "" "UP=$value"
     before=1
   fi
   value=$hosts_down
   if [ "$value" -gt "0" ]; then
-    [ "$before" == "1" ] && color_msg $STATE_INFO "/"
-    color_msg $STATE_CRITICAL "DOWN=$value"
+    [ "$before" == "1" ] && color_msg $STATE_INFO "" "/"
+    color_msg $STATE_CRITICAL "" "DOWN=$value"
   fi
 }
 
 check_services() {
-  echo -n ${label}:
+  line="${line} SERVICES:"
   value=$service_ok
   if [ "$value" -gt "0" ]; then
-    color_msg $STATE_OK "OK=$value"
+    color_msg $STATE_OK "" "OK=$value"
     before=1
   fi
   value=$service_warning
   if [ "$value" -gt "0" ]; then
-    [ "$before" == "1" ] && color_msg $STATE_INFO "/"
-    color_msg $STATE_WARNING "WARN=$value"
+    [ "$before" == "1" ] && color_msg $STATE_INFO "" "/"
+    color_msg $STATE_WARNING "" "WARN=$value"
     before=1
   fi
   value=$service_unknown
   if [ "$value" -gt "0" ]; then
-    [ "$before" == "1" ] && color_msg $STATE_INFO "/"
-    color_msg $STATE_UNKNOWN "UNKN=$value"
+    [ "$before" == "1" ] && color_msg $STATE_INFO "" "/"
+    color_msg $STATE_UNKNOWN "" "UNKN=$value"
     before=1
   fi
   value=$service_critical
   if [ "$value" -gt "0" ]; then
-    [ "$before" == "1" ] && color_msg $STATE_INFO "/"
-    color_msg $STATE_CRITICAL "CRIT=$value"
+    [ "$before" == "1" ] && color_msg $STATE_INFO "" "/"
+    color_msg $STATE_CRITICAL "" "CRIT=$value"
   fi
 }
 
 minimal() {
   stats
-  color_msg $STATE_INFO "[NAGIOS]"; 
-  echo -n " "; label="DT"; value=$(date +'%Y%m%d%H%M%S'); check_dt
+  value=$(date +'%Y%m%d%H%M%S'); check_dt
   trt=$(echo $total_running_time | tr -d "[ ]")
-  echo -n " "; label="UPTIME"; value="$trt"; check_info
-  echo -n " "; label="HOSTS"; check_hosts
-  echo -n " "; label="SERVICES"; check_services
-  echo ""
+  line="$line "; value="$trt"; check_uptime
+  check_hosts; check_services
+  line=" $line" 
+  color_msg $bstate "" "[NAGIOS]" 1
 }
 
 summary() {
@@ -472,6 +478,7 @@ footer() {
   fi
   if [ "$minimal" == "1" ]; then
     minimal
+    echo -e "$line"
   else
     summary
   fi
@@ -562,6 +569,8 @@ STATE_INFO=5
 INVERT=1
 
 params "$@"
+
+bstate=$STATE_OK
 
 test_live_sock
 if [ "$live_sock_state" == "0" ]; then
