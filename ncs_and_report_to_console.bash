@@ -5,6 +5,7 @@
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
 # v1.0.1 - 2017-01-10 - Nelbren <nelbren@gmail.com>
 # v1.0.2 - 2017-01-11 - Nelbren <nelbren@gmail.com>
+# v1.0.3 - 2017-01-12 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -311,6 +312,7 @@ msg() {
   num=$1
   if [ "$lang" == "es" ]; then
     case $num in
+      ALL) t="REPORTE NAGIOS $name DE TODOS LOS EQUIPOS/SERVICIOS";;
       REPORT_PROBLEM) t="REPORTE NAGIOS $name DE EQUIPOS/SERVICIOS CON PROBLEMAS";;
       MESSAGE_OK) t="Estoy bien operacionalmente, y todos mis circuitos funcionan perfectamente.";;
       REPORT_DOWNTIME) t="REPORTE DE NAGIOS DE EQUIPOS/SERVICIOS CON PROBLEMAS CON TIEMPO-INACTIVIDAD.";;
@@ -327,6 +329,7 @@ msg() {
     esac
   else
     case $num in
+      ALL) t="NAGIOS REPORT $name OF ALL HOSTS/SERVICES";;
       REPORT_PROBLEM) t="NAGIOS REPORT $name OF HOSTS/SERVICES WITH PROBLEMS";;
       MESSAGE_OK) t="I'm completely operational, and all my circuits are functioning perfectly.";;
       REPORT_DOWNTIME) t="NAGIOS REPORT OF HOSTS/SERVICES WITH PROBLEMS BUT WITH DOWNTIME.";;
@@ -349,7 +352,11 @@ header() {
   [ "$silent" == "1" -o "$sumarystate" == "1" -o "$minimal" == "1" ] && return
   color_background $state_previous
   datehour=$(date +'%Y-%m-%d %H:%M:%S')
-  title=$(msg REPORT_PROBLEM)
+  if [ "$all" = "1" ]; then
+    title=$(msg ALL)
+  else
+    title=$(msg REPORT_PROBLEM)
+  fi
   title=" $title @ $datehour "
   line_double "$title" 0
 }
@@ -429,7 +436,7 @@ minimal() {
   line="$line "; value="$trt"; check_uptime
   check_hosts; check_services
   line=" $line" 
-  color_msg $bstate "" "[NAGIOS]" 1
+  color_msg $bstate "" "[NAGIOS:${myname}]" 1
 }
 
 summary() {
