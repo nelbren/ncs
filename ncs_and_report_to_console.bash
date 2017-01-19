@@ -6,6 +6,7 @@
 # v1.0.1 - 2017-01-10 - Nelbren <nelbren@gmail.com>
 # v1.0.2 - 2017-01-11 - Nelbren <nelbren@gmail.com>
 # v1.0.3 - 2017-01-12 - Nelbren <nelbren@gmail.com>
+# v1.0.4 - 2017-01-19 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -283,10 +284,10 @@ get_service_with_state() {
         if [ "$first" == "1" ]; then
           first=0
         else
-          [ "$silent" == "0" ] && echo ""
+          [ "$silent" == "0" -a "$sumarystate" == "0" -a "$minimal" == "0" ] && echo ""
         fi
         host_state 
-        if [ "$silent" == "0" ]; then
+        if [ "$silent" == "0" -a "$sumarystate" == "0" -a "$minimal" == "0" ]; then
           color_background_host $state3
           echo -n " ${host_name}: "
           color_background $state_previous
@@ -532,7 +533,6 @@ cleanup() {
 }
 
 problems_or_all() {
-  [ "$silent" == "1" -o "$sumarystate" == "1" -o "$minimal" == "1" ] && return
   if [ "$all" == "1" ]; then
     get_service_with_state -1 # ANY
   else
