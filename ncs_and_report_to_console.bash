@@ -7,6 +7,7 @@
 # v1.0.2 - 2017-01-11 - Nelbren <nelbren@gmail.com>
 # v1.0.3 - 2017-01-12 - Nelbren <nelbren@gmail.com>
 # v1.0.4 - 2017-01-19 - Nelbren <nelbren@gmail.com>
+# v1.0.5 - 2017-01-25 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -296,8 +297,10 @@ get_service_with_state() {
         fi
         previous=$host_name
       else
-        #color_service $state2 ",$display_name($state2)"
-        color_service $state2 ",$display_name"
+        if [ "$silent" == "0" -a "$sumarystate" == "0" -a "$minimal" == "0" ]; then
+          #color_service $state2 ",$display_name($state2)"
+          color_service $state2 ",$display_name"
+        fi
       fi
       if [ -n "$scheduled" -a "$silent" == "0" ]; then
         echo -n "[$end|$who]"
