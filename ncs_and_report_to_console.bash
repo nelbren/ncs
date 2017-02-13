@@ -59,6 +59,70 @@ params() {
   #echo $state_previous $silent $max_cols $all
 }
 
+convertir_de_segundos_a() {
+  declare -a medida=('d' 'h' 'm' 's');
+  valor=$1
+
+  # 3600 * 24horas = 86400 segundos contiene 1 dia
+  contiene=86400
+  dias=$(echo -e "scale=0\n${valor}/$contiene" | bc)
+  if [ "$dias" == "0" ]; then
+    tiempo=""
+    dias_segundos=0
+  else
+    tiempo="$dias ${medida[0]}"
+    dias_segundos=$(echo -e "scale=0\n${dias}*$contiene" | bc)
+  fi
+
+  # 60segundos * 60minutos = 3600 segundos contiene 1 hora
+  contiene=3600
+  horas=$(echo -e "scale=0\n(${valor}-$dias_segundos)/$contiene" | bc)
+  if [ "$horas" == "0" ]; then
+    horas_segundos=0
+  else
+    if [ -n "$tiempo" ]; then
+      tiempo="${tiempo}${horas}${medida[1]}"
+    else
+      tiempo="${horas}${medida[1]}"
+    fi
+    horas_segundos=$(echo -e "scale=0\n${horas}*$contiene" | bc)
+  fi
+
+  # 60segundos * 1minuto = 60 segundos contiene 1 minuto
+  contiene=60
+  minutos=$(echo -e "scale=0\n(${valor}-$dias_segundos-$horas_segundos)/$contiene" | bc)
+  if [ "$minutos" == "0" ]; then
+    minutos_segundos=0
+  else
+    if [ -n "$tiempo" ]; then
+      tiempo="${tiempo}$minutos${medida[2]}"
+    else
+      tiempo="${minutos}${medida[2]}"
+    fi
+    minutos_segundos=$(echo -e "scale=0\n${minutos}*$contiene" | bc)
+  fi
+
+  segundos=$(echo -e "scale=0\n${valor}-$dias_segundos-$horas_segundos-$minutos_segundos" | bc)
+  if [ "$segundos" == "0" ]; then
+    segundos_segundos=0
+    tiempo="${segundos}${medida[3]}"
+  else
+    if [ -n "$tiempo" ]; then
+      tiempo="${tiempo}${segundos}${medida[3]}"
+    else
+      tiempo="${segundos}${medida[3]}"
+    fi
+  fi
+
+  echo $tiempo
+}
+
+diff_segundos() {
+  tiempo_pasado=$1
+  tiempo_actual=$2
+  echo $(( $(date --date="$tiempo_actual" +%s) - $(date --date="$tiempo_pasado" +%s) ))
+}
+
 color_msg() {
   pstate=$1
   message1=$2
@@ -433,6 +497,14 @@ check_services() {
   fi
 }
 
+time_usage() {
+  fechahora_ahora=$(date +'%Y-%m-%d %H:%M:%S')
+  diff=$(diff_segundos "$fechahora_cuando" "$fechahora_ahora")
+  diff_humana=$(convertir_de_segundos_a $diff)
+  line="$line "
+  color_msg $STATE_INFO TIME: "$diff_humana"
+}
+
 minimal() {
   stats
   value=$(date +'%Y%m%d%H%M%S'); check_dt
@@ -489,6 +561,7 @@ footer() {
   fi
   if [ "$minimal" == "1" ]; then
     minimal
+    time_usage
     echo -e "$line"
   else
     summary
@@ -556,6 +629,7 @@ problems_scheduled() {
   fi
 }
 
+fechahora_cuando=$(date +'%Y-%m-%d %H:%M:%S')
 myself=$(basename $0)
 myname=$(uname -n)
 unixcat=/usr/local/bin/unixcat
