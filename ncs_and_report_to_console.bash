@@ -8,6 +8,7 @@
 # v1.0.3 - 2017-01-12 - Nelbren <nelbren@gmail.com>
 # v1.0.4 - 2017-01-19 - Nelbren <nelbren@gmail.com>
 # v1.0.5 - 2017-01-25 - Nelbren <nelbren@gmail.com>
+# v1.0.6 - 2017-05-02 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -20,6 +21,7 @@ use() {
   echo -e "Where: "
   echo -e "       -sa|--showall\t\t\tShow all state of Hosts/Services"
   echo -e "       -ss|--sumarystate\t\tShow only the Summary State"
+  echo -e "       -d|--detail\t\tShow the detail of state"
   echo -e "       -min|--minimal\t\t\tShow the Summary State in minimal space"
   echo -e "       -q|--quiet\t\t\tGet only the state"
   echo -e "       -is=STATE|--initialstate=STATE\tSet the previous state"
@@ -34,6 +36,7 @@ params() {
     case $i in
       -sa|--showall) all=1; shift;;
       -ss|--sumarystate) sumarystate=1; shift;;
+      -d|--detail) detail=1; shift;;
       -min|--minimal) minimal=1; shift;;
       -q|--quiet) silent=1; shift;;
       -is=*|--initialstate=*) state_previous="${i#*=}"; shift;;
@@ -49,6 +52,7 @@ params() {
   [ -z "$silent" ] && silent=0
   [ -z "$all" ] && all=0
   [ -z "$sumarystate" ] && sumarystate=0
+  [ -z "$detail" ] && detail=0
   [ -z "$minimal" ] && minimal=0
   if [ -z "$max_cols" ]; then
     max_cols=$(tput cols)
@@ -358,6 +362,11 @@ get_service_with_state() {
           color_background $state_previous
           #color_service $state2 "$display_name($state2)"
           color_service $state2 "$display_name"
+	  #if [ "$detail" == "1" ]; then
+	    #echo "-----"
+	    #echo "$host_services_with_info"
+	    #echo "====="
+	  #fi
         fi
         previous=$host_name
       else
