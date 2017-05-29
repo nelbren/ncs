@@ -9,6 +9,7 @@
 # v1.0.4 - 2017-01-19 - Nelbren <nelbren@gmail.com>
 # v1.0.5 - 2017-01-25 - Nelbren <nelbren@gmail.com>
 # v1.0.6 - 2017-05-02 - Nelbren <nelbren@gmail.com>
+# v1.0.7 - 2017-05-28 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -55,8 +56,8 @@ params() {
   [ -z "$detail" ] && detail=0
   [ -z "$minimal" ] && minimal=0
   if [ -z "$max_cols" ]; then
-    max_cols=$(tput cols)
-    if [ "$max_cols" == "0" ]; then
+    max_cols=$(tput cols 2>/dev/null)
+    if [ -z "$max_cols" -o "$max_cols" == "0" ]; then
       max_cols=80
     fi
   fi

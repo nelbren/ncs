@@ -3,6 +3,7 @@
 # ncs_and_report_to_email.bash.bash 
 #
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
+# v1.0.1 - 2017-05-28 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -31,8 +32,8 @@ params() {
 
   [ -z "$force" ] && force=0
   if [ -z "$max_cols" ]; then
-    max_cols=$(tput cols)
-    if [ "$max_cols" == "0" ]; then
+    max_cols=$(tput cols 2>/dev/null)
+    if [ -z "$max_cols" -o "$max_cols" == "0" ]; then 
       max_cols=80
     fi
   fi
@@ -175,5 +176,3 @@ else
   fi
 fi
 cleanup
-
-

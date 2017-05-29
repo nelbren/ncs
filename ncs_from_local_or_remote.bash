@@ -33,8 +33,8 @@ params() {
   done
   [ -z "$silent" ] && silent=0
   if [ -z "$max_cols" ]; then
-    max_cols=$(tput cols)
-    if [ "$max_cols" == "0" ]; then
+    max_cols=$(tput cols 2>/dev/null)
+    if [ -z "$max_cols" -o "$max_cols" == "0" ]; then
       max_cols=80
     fi
   fi
@@ -51,8 +51,8 @@ automatic() {
     $ncs_and_report_to_console $params
     exit $?
   else
-    max_cols=$(tput cols)
-    if [ "$max_cols" == "0" ]; then
+    max_cols=$(tput cols 2>/dev/null)
+    if [ -z "$max_cols" -o "$max_cols" == "0" ]; then
       max_cols=80
     fi
   fi
