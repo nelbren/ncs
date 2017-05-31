@@ -23,8 +23,13 @@ use() {
 
 get_cols_and_rows()  {
   terminal=$(tty)
-  columns=$(stty -a <"$terminal" | grep -Po '(?<=columns )\d+')
-  rows=$(stty -a <"$terminal" | grep -Po '(?<=rows )\d+')
+  if [ "$terminal" == "not a tty" ]; then
+    columns=80
+    rows=25
+  else
+    columns=$(stty -a <"$terminal" | grep -Po '(?<=columns )\d+')
+    rows=$(stty -a <"$terminal" | grep -Po '(?<=rows )\d+')
+  fi
 }
 
 params() {
@@ -42,9 +47,6 @@ params() {
   if [ -z "$max_cols" ]; then
     get_cols_and_rows
     max_cols=$columns
-    if [ -z "$max_cols" -o "$max_cols" == "0" ]; then
-      max_cols=80
-    fi
   fi
 }
 
