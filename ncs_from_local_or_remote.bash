@@ -21,6 +21,12 @@ use() {
   exit 0
 }
 
+get_cols_and_rows()  {
+  terminal=$(tty)
+  columns=$(stty -a <"$terminal" | grep -Po '(?<=columns )\d+')
+  rows=$(stty -a <"$terminal" | grep -Po '(?<=rows )\d+')
+}
+
 params() {
   for i in "$@"; do
     case $i in
@@ -34,8 +40,8 @@ params() {
   done
   [ -z "$silent" ] && silent=0
   if [ -z "$max_cols" ]; then
-    tput cols > $temput
-    max_cols=$(cat $temput 2>/dev/null)
+    get_cols_and_rows
+    max_cols=$columns
     if [ -z "$max_cols" -o "$max_cols" == "0" ]; then
       max_cols=80
     fi
@@ -92,13 +98,8 @@ system() {
   done
 }
 
-cleanup() {
-  [ -r $temput ] && rm $temput
-}
-
 myself=$(basename $0)
 myname=$(uname -n)
-temput=/tmp/$myname.$$
 
 base=/usr/local/ncs
 conf=${base}/ncs.conf
@@ -113,4 +114,3 @@ if [ -z "$system" ]; then
 else
   system
 fi
-cleanup

@@ -20,6 +20,12 @@ use() {
   exit 0
 }
 
+get_cols_and_rows()  {
+  terminal=$(tty)
+  columns=$(stty -a <"$terminal" | grep -Po '(?<=columns )\d+')
+  rows=$(stty -a <"$terminal" | grep -Po '(?<=rows )\d+')
+}
+
 params() {
   for i in "$@"; do
     case $i in
@@ -33,8 +39,8 @@ params() {
 
   [ -z "$force" ] && force=0
   if [ -z "$max_cols" ]; then
-    tput cols > $temput
-    max_cols=$(cat $temput 2>/dev/null)
+    get_cols_and_rows
+    max_cols=$columns
     if [ -z "$max_cols" -o "$max_cols" == "0" ]; then 
       max_cols=80
     fi
@@ -139,14 +145,12 @@ process() {
 cleanup() {
   [ -r $tmp1 ] && rm $tmp1
   [ -r $tmp2 ] && rm $tmp2
-  [ -r $temput ] && rm $temput
 }
 
 myself=$(basename $0)
 myname=$(uname -n)
 tmp1=$(mktemp /tmp/$myself.output.ansi.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
 tmp2=$(mktemp /tmp/$myself.output.html.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
-temput=$(mktemp /tmp/$myself.tput.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
 
 base=/usr/local/ncs
 check=${base}/ncs_and_report_to_console.bash 

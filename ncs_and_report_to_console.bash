@@ -10,6 +10,7 @@
 # v1.0.5 - 2017-01-25 - Nelbren <nelbren@gmail.com>
 # v1.0.6 - 2017-05-02 - Nelbren <nelbren@gmail.com>
 # v1.0.7 - 2017-05-28 - Nelbren <nelbren@gmail.com>
+# v1.0.8 - 2017-05-31 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -31,6 +32,13 @@ use() {
   echo -e "       -h|--help\t\t\tShow this information."
   exit 0
 }
+
+get_cols_and_rows()  {
+  terminal=$(tty)
+  columns=$(stty -a <"$terminal" | grep -Po '(?<=columns )\d+')
+  rows=$(stty -a <"$terminal" | grep -Po '(?<=rows )\d+')
+}
+
 
 params() {
   for i in "$@"; do
@@ -56,7 +64,8 @@ params() {
   [ -z "$detail" ] && detail=0
   [ -z "$minimal" ] && minimal=0
   if [ -z "$max_cols" ]; then
-    max_cols=$(tput cols 2>/dev/null)
+    get_cols_and_rows
+    max_cols=$columns
     if [ -z "$max_cols" -o "$max_cols" == "0" ]; then
       max_cols=80
     fi
