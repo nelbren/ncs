@@ -4,6 +4,7 @@
 #
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
 # v1.0.1 - 2017-05-28 - Nelbren <nelbren@gmail.com>
+# v1.0.2 - 2017-05-31 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -32,7 +33,8 @@ params() {
 
   [ -z "$force" ] && force=0
   if [ -z "$max_cols" ]; then
-    max_cols=$(tput cols 2>/dev/null)
+    tput cols > $temput
+    max_cols=$(cat $temput 2>/dev/null)
     if [ -z "$max_cols" -o "$max_cols" == "0" ]; then 
       max_cols=80
     fi
@@ -115,7 +117,6 @@ is_my_turn() {
 }
 
 process() {
-                        #0       1          2          3
   declare -a status_s=('OK' 'WARNING' 'CRITICAL' 'UNKNOWN');
   if [ -z "$mail_background" -o \
           "$mail_background" == "terminal" ]; then
@@ -138,12 +139,14 @@ process() {
 cleanup() {
   [ -r $tmp1 ] && rm $tmp1
   [ -r $tmp2 ] && rm $tmp2
+  [ -r $temput ] && rm $temput
 }
 
 myself=$(basename $0)
 myname=$(uname -n)
 tmp1=$(mktemp /tmp/$myself.output.ansi.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
 tmp2=$(mktemp /tmp/$myself.output.html.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
+temput=$(mktemp /tmp/$myself.tput.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
 
 base=/usr/local/ncs
 check=${base}/ncs_and_report_to_console.bash 

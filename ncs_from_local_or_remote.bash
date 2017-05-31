@@ -3,6 +3,7 @@
 # ncs_from_local_or_remote.bash
 #
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
+# v1.0.1 - 2017-05-31 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -33,7 +34,8 @@ params() {
   done
   [ -z "$silent" ] && silent=0
   if [ -z "$max_cols" ]; then
-    max_cols=$(tput cols 2>/dev/null)
+    tput cols > $temput
+    max_cols=$(cat $temput 2>/dev/null)
     if [ -z "$max_cols" -o "$max_cols" == "0" ]; then
       max_cols=80
     fi
@@ -48,13 +50,8 @@ ssh_command() {
 automatic() {
   if [ -r $live_sock ]; then
     #echo "Usando nagios localmente..."
-    $ncs_and_report_to_console $params
+    $ncs_and_report_to_console --maxcols=$max_cols $params 
     exit $?
-  else
-    max_cols=$(tput cols 2>/dev/null)
-    if [ -z "$max_cols" -o "$max_cols" == "0" ]; then
-      max_cols=80
-    fi
   fi
 
   grep "^server_" $conf | \
@@ -95,8 +92,13 @@ system() {
   done
 }
 
+cleanup() {
+  [ -r $temput ] && rm $temput
+}
+
 myself=$(basename $0)
 myname=$(uname -n)
+temput=/tmp/$myname.$$
 
 base=/usr/local/ncs
 conf=${base}/ncs.conf
@@ -111,3 +113,4 @@ if [ -z "$system" ]; then
 else
   system
 fi
+cleanup
