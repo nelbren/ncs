@@ -5,6 +5,7 @@
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
 # v1.0.1 - 2017-05-28 - Nelbren <nelbren@gmail.com>
 # v1.0.2 - 2017-05-31 - Nelbren <nelbren@gmail.com>
+# v1.0.3 - 2017-06-03 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -149,6 +150,8 @@ cleanup() {
   [ -r $tmp2 ] && rm $tmp2
 }
 
+debug=0
+
 myself=$(basename $0)
 myname=$(uname -n)
 tmp1=$(mktemp /tmp/$myself.output.ansi.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
@@ -167,19 +170,21 @@ params "$@"
 
 is_my_turn
 if [ "$turn" == "1" ]; then
-  echo "It's my turn."
+  [ "$debug" == "1" ] && echo "It's my turn."
   process
 else
   if [ "$force" == "1" ]; then
-    echo "It's my turn. (Forced!)"
+    [ "$debug" == "1" ] && echo "It's my turn. (Forced!)"
     process
   else
     echo "Not my turn."
     if [ "$responsable" == "1" ]; then
-      echo "$host_alternative answer back"
+      [ "$debug" == "1" ] && echo "$host_alternative answer back"
     else
-      echo "$host_alternative don't answer back, then i can help..."
-      echo "It's my turn."
+      if [ "$debug" == "1" ]; then
+        echo "$host_alternative don't answer back, then i can help..."
+        echo "It's my turn."
+      fi
       process
     fi
   fi
