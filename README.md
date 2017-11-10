@@ -13,6 +13,6 @@ CHANGES:
 
 2017-05-31 - tput fixes
 
-2017-11-10 - don't show info with zeros (saver and email)
+2017-11-10 - don't show info with zeros
 
 For more info: http://ncs.npr3s.com
