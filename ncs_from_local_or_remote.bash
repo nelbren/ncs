@@ -4,6 +4,7 @@
 #
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
 # v1.0.1 - 2017-05-31 - Nelbren <nelbren@gmail.com>
+# v1.0.2 - 2017-11-10 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -57,7 +58,6 @@ ssh_command() {
 
 automatic() {
   if [ -r $live_sock ]; then
-    #echo "Usando nagios localmente..."
     $ncs_and_report_to_console --maxcols=$max_cols $params 
     exit $?
   fi
@@ -74,7 +74,6 @@ automatic() {
       port=$(echo $linea | cut -d"=" -f2)
       ssh_command "[ -x $ncs_and_report_to_console ]"
       if [ "$?" == "0" ]; then
-        #echo "Usando nagios remotamente(${host})..."
         ssh_command "$ncs_and_report_to_console --initialstate=9 --maxcols=$max_cols $params"
         exit $?
         break

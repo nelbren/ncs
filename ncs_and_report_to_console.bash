@@ -11,6 +11,7 @@
 # v1.0.6 - 2017-05-02 - Nelbren <nelbren@gmail.com>
 # v1.0.7 - 2017-05-28 - Nelbren <nelbren@gmail.com>
 # v1.0.8 - 2017-05-31 - Nelbren <nelbren@gmail.com>
+# v1.0.9 - 2017-11-10 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -543,27 +544,39 @@ summary() {
   stats
   title=$(msg SERVICES)
   color_service 9 " $title: "
-  title=$(msg OK)
-  color_service 0 "$service_ok $title"
-  color_background $state_previous; echo -n " | "
-  title=$(msg WARNING)
-  color_service 1 "$service_warning $title"
-  color_background $state_previous; echo -n " | "
-  title=$(msg UNKNOWN)
-  color_service 3 "$service_unknown $title"
-  color_background $state_previous; echo -n " | "
-  title=$(msg CRITICAL)
-  color_service 2 "$service_critical $title"
-  color_background $state_previous; echo -n " | "
+  if [ "$service_ok" != "0" ]; then
+    title=$(msg OK)
+    color_service 0 "$service_ok $title"
+    color_background $state_previous; echo -n " | "
+  fi
+  if [ "$service_warning" != "0" ]; then
+    title=$(msg WARNING)
+    color_service 1 "$service_warning $title"
+    color_background $state_previous; echo -n " | "
+  fi
+  if [ "$service_unknown" != "0" ]; then
+    title=$(msg UNKNOWN)
+    color_service 3 "$service_unknown $title"
+    color_background $state_previous; echo -n " | "
+  fi
+  if [ "$service_critical" != "0" ]; then
+    title=$(msg CRITICAL)
+    color_service 2 "$service_critical $title"
+    color_background $state_previous; echo -n " | "
+  fi
   [ $max_cols -le 80 ] && echo ""
   title="$(msg HOSTS)"
   color_service 9 " $title: "
-  title=$(msg UP)
-  color_host 0 "$hosts_up $title"
-  color_background $state_previous; echo -n " | "
-  title=$(msg DOWN)
-  color_host 1 "$hosts_down $title"
-  color_background $state_previous; echo -n " | "
+  if [ "$hosts_ok" != "0" ]; then
+    title=$(msg UP)
+    color_host 0 "$hosts_up $title"
+    color_background $state_previous; echo -n " | "
+  fi
+  if [ "$hosts_down" != "0" ]; then
+    title=$(msg DOWN)
+    color_host 1 "$hosts_down $title"
+    color_background $state_previous; echo -n " | "
+  fi
   title=$(msg RUNNING_TIME)
   color_service $trt_color "$title: $total_running_time"
   #echo " ($trt_num_seconds > $trt_num_last)"
