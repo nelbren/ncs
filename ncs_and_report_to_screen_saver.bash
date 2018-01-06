@@ -3,6 +3,7 @@
 # ncs_and_report_to_screen_saver.bash
 #
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
+# v1.0.1 - 2018-01-04 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -38,15 +39,15 @@ params() {
 color_background() {
   estatus=$1
   case $estatus in
-    0) echo -en "\e[30;48;5;82m";;
-    1) echo -en "\e[30;48;5;11m";;
+    0) echo -en "\e[30;48;5;2m";;
+    1) echo -en "\e[30;48;5;3m";;
     2) echo -en "\e[30;48;5;9m";;
     3) echo -en "\e[30;48;5;13m";;
   esac
 }
 
 normal() {
-  echo -en "\e[0m"
+  echo -en "$S" #"\e[0m"
 }
 
 servidor_listo() {
@@ -92,6 +93,10 @@ cleanup() {
   [ -r $filetemp2 ] && rm $filetemp2
 }
 
+stc=/usr/local/ncs/lib/super-tiny-colors.bash
+[ -x $stc ] || exit 1
+. $stc
+
 myself=$(basename $0)
 myname=$(uname -n)
 filetemp1=$(mktemp /tmp/$myself.1.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
@@ -120,7 +125,7 @@ while true; do
 
   color_background $state
   clear > $terminal
-
+  
   $check  --initialstate=$state --maxcols=$max_cols | tee $filetemp1
   exitcode=${PIPESTATUS[0]}
 
@@ -137,8 +142,9 @@ while true; do
   echo ""
   contador=$refresh
   while [ $contador -gt 0 ]; do
-    echo -ne "\033[2K" ; printf "\r"
-    echo -n "REFRESH IN: $contador seconds"
+    echo -en "\033[2K" ; printf "\r"
+    color_background $state
+    echo -en "REFRESH IN: $contador seconds$E"
     contador=$((contador-1))
     sleep 1
   done

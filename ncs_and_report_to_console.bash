@@ -12,6 +12,7 @@
 # v1.0.7 - 2017-05-28 - Nelbren <nelbren@gmail.com>
 # v1.0.8 - 2017-05-31 - Nelbren <nelbren@gmail.com>
 # v1.0.9 - 2017-11-10 - Nelbren <nelbren@gmail.com>
+# v1.1.0 - 2018-01-04 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -44,7 +45,6 @@ get_cols_and_rows()  {
     rows=$(stty -a <"$terminal" | grep -Po '(?<=rows )\d+')
   fi
 }
-
 
 params() {
   for i in "$@"; do
@@ -147,19 +147,19 @@ color_msg() {
   before=$4
   if [ "$INVERT" == "0" ]; then
     case $pstate in
-      $STATE_OK)       color="\e[0m\e[38;5;10m";;
-      $STATE_WARNING)  color="\e[0m\e[38;5;11m";;
-      $STATE_CRITICAL) color="\e[0m\e[38;5;9m";;
-      $STATE_UNKNOWN)  color="\e[0m\e[38;5;5m";;
-      $STATE_INFO)     color="\e[1;37m";;
+      $STATE_OK)       color="$cOK";; #"\e[0m\e[38;5;10m";;
+      $STATE_WARNING)  color="$cWA";; #"\e[0m\e[38;5;11m";;
+      $STATE_CRITICAL) color="$cCR";; #\e[0m\e[38;5;9m";;
+      $STATE_UNKNOWN)  color="$cUN";; #\e[0m\e[38;5;5m";;
+      $STATE_INFO)     color="$cIN";; #"\e[1;37m";;
     esac
   else
     case $pstate in
-      $STATE_OK)       color="\e[30;48;5;82m";;
-      $STATE_WARNING)  color="\e[30;48;5;11m";;
-      $STATE_CRITICAL) color="\e[30;48;5;9m";;
-      $STATE_UNKNOWN)  color="\e[30;48;5;5m";;
-      $STATE_INFO)     color="\e[7;49;97m";;
+      $STATE_OK)       color="$COK";; #"\e[30;48;5;82m";;
+      $STATE_WARNING)  color="$CWA";; #"\e[30;48;5;11m";;
+      $STATE_CRITICAL) color="$CCR";; #\e[30;48;5;9m";;
+      $STATE_UNKNOWN)  color="$CUN";; #"\e[30;48;5;5m";;
+      $STATE_INFO)     color="$CIN";; #\e[7;49;97m";;
     esac
   fi
   reset="\e[0m"
@@ -176,14 +176,14 @@ color_msg() {
 
 color_background() {
   state=$1
-  echo -en "\e[0m" 
+  echo -en "$S" #"\e[0m" 
   case $state in
-    0) echo -en "\e[30;48;5;82m";; # OK 
-    1) echo -en "\e[30;48;5;11m";; # WARNING
-    2) echo -en "\e[30;48;5;9m";;  # CRITICAL
-    3) echo -en "\e[30;48;5;13m";; # UNKNOWN
+    0) echo -en "$ig";; # OK 
+    1) echo -en "$iy";; # WARNING
+    2) echo -en "$Ir";; # CRITICAL
+    3) echo -en "$Im";; # UNKNOWN
     #9) echo -en "\e[0m\e[38;5;6m";;
-    9) echo -en "\e[1;37m";;
+    9) echo -en "$cIN";; #"\e[1;37m";;
   esac
 }
 
@@ -191,32 +191,32 @@ color_service() {
   [ "$silent" == "1" ] && return
   state=$1
   message=$2
-  echo -en "\e[0m"
+  echo -en "$S" #"\e[0m"
   case $state in 
     #0) echo -en "\e[0m\e[38;5;10m";; # OK
     #1) echo -en "\e[0m\e[38;5;11m";; # WARNING
     #2) echo -en "\e[0m\e[38;5;9m";;  # CRITICAL
     #3) echo -en "\e[0m\e[38;5;5m";;  # UNKNOWN
-    0) echo -en "\e[30;48;5;82m";; # OK 
-    1) echo -en "\e[30;48;5;11m";; # WARNING
-    2) echo -en "\e[30;48;5;9m";;  # CRITICAL
-    3) echo -en "\e[30;48;5;5m";;  # UNKNOWN
-    8) echo -en "\e[38;5;15m";;
+    0) echo -en "$COK";; #"\e[30;48;5;82m";; # OK 
+    1) echo -en "$CWA";; #"\e[30;48;5;11m";; # WARNING
+    2) echo -en "$CCR";; #"\e[30;48;5;9m";;  # CRITICAL
+    3) echo -en "$CUN";; #"\e[30;48;5;5m";;  # UNKNOWN
+    8) echo -en "$cIN";; #"\e[38;5;15m";;
     9) color_background $state_previous;;
     #9) echo -en "\e[38;1;37m";;
     #9) echo -en "\e[1;37m";;
   esac
   echo -n "$message"
-  echo -en "\e[0m" 
+  echo -en "$S" #"\e[0m" 
 }
 
 color_background_host() {
   state=$1
-  echo -en "\e[0m"
+  echo -en "$S" #\e[0m"
   case $state in
-    0) echo -en "\e[30;48;5;82m";; # OK 
-    1) echo -en "\e[30;48;5;9m";;  # CRITICAL
-    2) echo -en "\e[30;48;5;13m";; # UNREACHABLE
+    0) echo -en "$COK";; #"\e[30;48;5;82m";; # OK 
+    1) echo -en "$CCR";; #"\e[30;48;5;9m";;  # CRITICAL
+    2) echo -en "$CUN";; #e[30;48;5;13m";; # UNREACHABLE
   esac
 }
 
@@ -224,21 +224,21 @@ color_host() {
   [ "$silent" == "1" ] && return
   state=$1
   message=$2
-  echo -en "\e[0m"
+  echo -en "$S" #"\e[0m"
   case $state in 
     #0) echo -en "\e[0m\e[38;5;10m";; # UP
     #1) echo -en "\e[0m\e[38;5;9m";;  # DOWN
     #2) echo -en "\e[0m\e[38;5;5m";;  # UNREACHABLE
-    0) echo -en "\e[30;48;5;82m";; # OK 
-    1) echo -en "\e[30;48;5;9m";;  # CRITICAL
-    2) echo -en "\e[30;48;5;13m";; # UNREACHABLE
+    0) echo -en "$COK";; #"\e[30;48;5;82m";; # OK 
+    1) echo -en "$CCR";; #"\e[30;48;5;9m";;  # CRITICAL
+    2) echo -en "$CUN";; #"\e[30;48;5;13m";; # UNREACHABLE
     #*) echo -en "\e[38;5;11m";;
   esac
   echo -n "$message"
 }
 
 normal() {
-  echo -en "\e[0m"
+  echo -en "$S" #"\e[0m"
 }
 
 fix_state() {
@@ -455,7 +455,7 @@ middle() {
   [ "$silent" == "1" -o "$sumarystate" == "1" -o "$minimal" == "1" ] && return
   if [ "$first" == "1" ]; then
     title=$(msg MESSAGE_OK)
-    [ "$state_previous" == "9" ] && echo -en "\e[0m\e[38;5;10m"
+    [ "$state_previous" == "9" ] && echo -en "$nG" #"\e[0m\e[38;5;10m"
     line_space "$title" 1
   else
     echo "";
@@ -464,7 +464,6 @@ middle() {
   color_background $state_previous
   line_single " $title " 0
 }
-
 
 check_dt() {
   dt=$value
@@ -577,6 +576,7 @@ summary() {
     color_host 1 "$hosts_down $title"
     color_background $state_previous; echo -n " | "
   fi
+
   title=$(msg RUNNING_TIME)
   color_service $trt_color "$title: $total_running_time"
   #echo " ($trt_num_seconds > $trt_num_last)"
@@ -589,16 +589,23 @@ summary() {
 }
 
 footer() {
-  [ "$silent" == "1" ] && return
-  if [ "$first" == "0" ]; then
-    echo "";
-  fi
-  if [ "$minimal" == "1" ]; then
-    minimal
-    time_usage
-    echo -e "$line"
+  if [ "$silent" == "1" ]; then
+    stats
   else
-    summary
+    if [ "$first" == "0" ]; then
+      echo "";
+    fi
+    if [ "$minimal" == "1" ]; then
+      minimal
+      time_usage
+      echo -e "$line"
+    else
+      summary
+    fi
+  fi
+  if [ "$hosts_down" != "0" ]; then
+    state2=2
+    change_state $state2
   fi
 }
 
@@ -662,6 +669,10 @@ problems_scheduled() {
     get_service_with_state 1 scheduled # WARNING
   fi
 }
+
+stc=/usr/local/ncs/lib/super-tiny-colors.bash
+[ -x $stc ] || exit 1
+. $stc
 
 fechahora_cuando=$(date +'%Y-%m-%d %H:%M:%S')
 myself=$(basename $0)

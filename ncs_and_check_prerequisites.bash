@@ -4,23 +4,25 @@
 #
 # v1.0.0 - 2016-12-16 - Nelbren <nelbren@gmail.com>
 # v1.0.1 - 2017-01-10 - Nelbren <nelbren@gmail.com>
+# v1.0.2 - 2018-01-04 - Nelbren <nelbren@gmail.com>
 #
 
 show_task() {
-  echo -ne "\t$1... " 
+  echo -ne "  $1..." 
 }
 
 color() {
-  echo -en "\e[0m"
+  echo -en "$S"
   case $1 in
-    0) echo -en "\e[30;48;5;82m";; # OK
-    1) echo -en "\e[30;48;5;11m";; # WARNING
-    2) echo -en "\e[30;48;5;9m";;  # CRITICAL
-    9) echo -en "\e[1;37m";;
+    0) echo -en "${COK}";; # OK
+    1) echo -en "${CWA}";; # WARNING
+    2) echo -en "${CCR}";;  # CRITICAL
+    9) echo -en "${CUN}";;
   esac
 }
 
 check_task() {
+  echo -en "$S => "
   r=$1
   if [ "$r" == "0" ]; then
     color 0
@@ -33,7 +35,7 @@ check_task() {
     fi
     echo -n "[ FAIL! ]"
   fi
-  echo -en "\e[0m"
+  echo -en "$S"
   echo ""
 }
 
@@ -53,7 +55,7 @@ check_conf1() {
 
 check_bash() {
   bash="#!/bin/bash"
-  echo -en "\t${bash} "
+  echo -en "  ${bash}"
   if [ "$line" == "$bash" ]; then
     r=0
   else
@@ -72,8 +74,7 @@ check_param_comun() {
   c=$3
   v1=$4
   v2=$5
-  echo -e "\t${p} ="
-  echo -en "\t\t${v} "
+  echo -en "  ${CIN4}${p}$S=${CIN2}${v}$S"
   case $c in
     choices) if [ "$v" == "$v1" -o "$v" == "$v2" ]; then
                r=0
@@ -148,7 +149,6 @@ executable) if [ -n "$v1" ]; then
   check_task $r
 }
 
-
 check_param() {
   l=$1
 
@@ -217,16 +217,19 @@ check_files2() {
   warning=0
 }
 
+stc=/usr/local/ncs/lib/super-tiny-colors.bash
+[ -x $stc ] || exit 1
+. $stc
 
 base=/usr/local/ncs
 conf=${base}/ncs.conf
 
-echo -e "\nCONFIGURATION:\n"
+echo -e "${CIN1}\nCONFIGURATION:$S\n"
 check_conf1
 check_conf2
-echo -e "\nFILES NEEDED:\n"
+echo -e "\n${CIN1}FILES NEEDED:$S\n"
 check_files1
-echo -e "\nFILES OPTIONAL:\n"
+echo -e "\n${CIN1}FILES OPTIONAL:$S\n"
 check_files2
 
 exit

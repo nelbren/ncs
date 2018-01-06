@@ -15,4 +15,6 @@ CHANGES:
 
 2017-11-10 - don't show info with zeros
 
+2018-01-05 - enhanced colors and down hosts
+
 For more info: http://ncs.npr3s.com
