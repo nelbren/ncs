@@ -159,7 +159,7 @@ color_msg() {
       $STATE_WARNING)  color="$CWA";; #"\e[30;48;5;11m";;
       $STATE_CRITICAL) color="$CCR";; #\e[30;48;5;9m";;
       $STATE_UNKNOWN)  color="$CUN";; #"\e[30;48;5;5m";;
-      $STATE_INFO)     color="$CIN";; #\e[7;49;97m";;
+      $STATE_INFO)     color="$CIN2";; #\e[7;49;97m";;
     esac
   fi
   reset="\e[0m"
