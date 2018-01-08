@@ -3,6 +3,7 @@
 # super-tiny-colors.bash
 #
 # v0.0.1 - 2018-01-02 - nelbren@gmail.com
+# v0.0.2 - 2018-01-07 - nelbren@gmail.com
 #
 # https://notabug.org/demure/dotfiles
 # https://misc.flogisoft.com/bash/tip_colors_and_formatting
