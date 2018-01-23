@@ -17,4 +17,6 @@ CHANGES:
 
 2018-01-05 - enhanced colors and down hosts
 
+2018-01-23 - hostname fqdn
+
 For more info: http://ncs.npr3s.com
