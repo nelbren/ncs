@@ -13,6 +13,7 @@
 # v1.0.8 - 2017-05-31 - Nelbren <nelbren@gmail.com>
 # v1.0.9 - 2017-11-10 - Nelbren <nelbren@gmail.com>
 # v1.1.0 - 2018-01-04 - Nelbren <nelbren@gmail.com>
+# v1.1.1 - 2018-02-24 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -180,7 +181,8 @@ color_msg() {
   else
     line=${line}${line2}
   fi
-  if [ "$pstate" -gt "$bstate" -a "$bstate" != "$STATE_CRITICAL" -a "$pstate" != "$STATE_INFO" ]; then
+  if [ "$pstate" -gt "$bstate" -a "$bstate" != "$STATE_CRITICAL" -a \
+      "$pstate" != "$STATE_UNKNOWN" -a "$pstate" != "$STATE_INFO" ]; then
     bstate=$pstate
   fi
 }
