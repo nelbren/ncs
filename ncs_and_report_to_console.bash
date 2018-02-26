@@ -14,6 +14,7 @@
 # v1.0.9 - 2017-11-10 - Nelbren <nelbren@gmail.com>
 # v1.1.0 - 2018-01-04 - Nelbren <nelbren@gmail.com>
 # v1.1.1 - 2018-02-24 - Nelbren <nelbren@gmail.com>
+# v1.1.2 - 2018-02-26 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -402,6 +403,7 @@ get_service_with_state() {
         fi
       fi
       if [ -n "$scheduled" -a "$silent" == "0" ]; then
+        color_background $state_previous
         echo -n "[$end|$who]"
       fi
       [ -z "$scheduled" ] && change_state $state2
