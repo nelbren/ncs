@@ -15,6 +15,7 @@
 # v1.1.0 - 2018-01-04 - Nelbren <nelbren@gmail.com>
 # v1.1.1 - 2018-02-24 - Nelbren <nelbren@gmail.com>
 # v1.1.2 - 2018-02-26 - Nelbren <nelbren@gmail.com>
+# v1.1.3 - 2018-04-22 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -548,7 +549,8 @@ minimal() {
   line="$line "; value="$trt"; check_uptime
   check_hosts; check_services
   line=" $line" 
-  color_msg $bstate "" "[NAGIOS:${myname}]" 1
+  short=$(echo $myname | cut -d"." -f1)
+  color_msg $bstate "" "[NAGIOS:${short}]" 1
 }
 
 summary() {
