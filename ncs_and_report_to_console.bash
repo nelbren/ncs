@@ -16,6 +16,7 @@
 # v1.1.1 - 2018-02-24 - Nelbren <nelbren@gmail.com>
 # v1.1.2 - 2018-02-26 - Nelbren <nelbren@gmail.com>
 # v1.1.3 - 2018-04-22 - Nelbren <nelbren@gmail.com>
+# v1.1.4 - 2018-04-27 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -222,7 +223,7 @@ color_service() {
     #9) echo -en "\e[1;37m";;
   esac
   echo -n "$message"
-  echo -en "$S" #"\e[0m" 
+  echo -en "$S$E" #"\e[0m" 
 }
 
 color_background_host() {
