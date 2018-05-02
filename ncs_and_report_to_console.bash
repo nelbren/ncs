@@ -17,6 +17,7 @@
 # v1.1.2 - 2018-02-26 - Nelbren <nelbren@gmail.com>
 # v1.1.3 - 2018-04-22 - Nelbren <nelbren@gmail.com>
 # v1.1.4 - 2018-04-27 - Nelbren <nelbren@gmail.com>
+# v1.1.5 - 2018-05-01 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -492,7 +493,7 @@ check_dt() {
 }
 
 check_uptime() {
-  color_msg $STATE_INFO UPTIME: $value
+  color_msg $STATE_INFO UP: $value
 }
 
 check_hosts() {
