@@ -18,6 +18,7 @@
 # v1.1.3 - 2018-04-22 - Nelbren <nelbren@gmail.com>
 # v1.1.4 - 2018-04-27 - Nelbren <nelbren@gmail.com>
 # v1.1.5 - 2018-05-01 - Nelbren <nelbren@gmail.com>
+# v1.1.6 - 2018-05-03 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -617,7 +618,7 @@ footer() {
     if [ "$minimal" == "1" ]; then
       minimal
       time_usage
-      echo -e "$line"
+      echo -e "$line$S$E"
     else
       summary
     fi
