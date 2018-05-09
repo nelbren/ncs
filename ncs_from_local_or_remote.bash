@@ -5,6 +5,7 @@
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
 # v1.0.1 - 2017-05-31 - Nelbren <nelbren@gmail.com>
 # v1.0.2 - 2017-11-10 - Nelbren <nelbren@gmail.com>
+# v1.0.2 - 2018-05-09 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -26,10 +27,15 @@ get_cols_and_rows()  {
   terminal=$(tty)
   if [ "$terminal" == "not a tty" ]; then
     columns=80
-    rows=25
+    rows=24
   else
-    columns=$(stty -a <"$terminal" | grep -Po '(?<=columns )\d+')
-    rows=$(stty -a <"$terminal" | grep -Po '(?<=rows )\d+')
+    if [ "$USER" == "root" ]; then
+      columns=$(stty -a <"$terminal" | grep -Po '(?<=columns )\d+')
+      rows=$(stty -a <"$terminal" | grep -Po '(?<=rows )\d+')
+    else
+      columns=$(tput cols)
+      rows=$(tput lines)
+    fi
   fi
 }
 

@@ -19,6 +19,7 @@
 # v1.1.4 - 2018-04-27 - Nelbren <nelbren@gmail.com>
 # v1.1.5 - 2018-05-01 - Nelbren <nelbren@gmail.com>
 # v1.1.6 - 2018-05-03 - Nelbren <nelbren@gmail.com>
+# v1.1.7 - 2018-05-09 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -417,6 +418,20 @@ get_service_with_state() {
   IFS=$IFSOLD
 }
 
+get_host_with_state() {
+  host_problems=0
+  IFSOLD=$IFS; IFS=";"
+  echo -e "GET hosts\nColumns: host_comments_with_info host_name state\n${filtro}" | $unixcat $live_sock | \
+  while read host_comments_with_info host_name state2; do
+    IFS=$IFSOLD
+    include=0
+    if [ "$state2" != "0" -a \
+	 -z "$host_comments_with_info" ] ; then
+      host_problems=$((host_problemas + 1))
+    fi
+  done
+}
+
 msg() {
   num=$1
   if [ "$lang" == "es" ]; then
@@ -625,7 +640,8 @@ footer() {
   fi
   if [ "$hosts_down" != "0" ]; then
     state2=2
-    change_state $state2
+    get_host_with_state
+    [ "$host_problems" -gt "0" ] && change_state $state2
   fi
 }
 
