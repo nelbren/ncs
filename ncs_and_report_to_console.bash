@@ -639,9 +639,11 @@ footer() {
     fi
   fi
   if [ "$hosts_down" != "0" ]; then
-    state2=2
     get_host_with_state
-    [ "$host_problems" -gt "0" ] && change_state $state2
+    if [ $host_problems -gt 0 ] ; then
+      state2=2
+      change_state $state2
+    fi
   fi
 }
 
