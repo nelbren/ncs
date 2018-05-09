@@ -226,7 +226,7 @@ color_service() {
     #9) echo -en "\e[1;37m";;
   esac
   echo -n "$message"
-  echo -en "$S$E" #"\e[0m" 
+  [ "$state_previous" -ge "8" ] && echo -en "$S$E" #"\e[0m" 
 }
 
 color_background_host() {
