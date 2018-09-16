@@ -20,6 +20,7 @@
 # v1.1.5 - 2018-05-01 - Nelbren <nelbren@gmail.com>
 # v1.1.6 - 2018-05-03 - Nelbren <nelbren@gmail.com>
 # v1.1.7 - 2018-05-09 - Nelbren <nelbren@gmail.com>
+# v1.1.8 - 2018-10-15 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -32,8 +33,9 @@ use() {
   echo -e "Where: "
   echo -e "       -sa|--showall\t\t\tShow all state of Hosts/Services"
   echo -e "       -ss|--sumarystate\t\tShow only the Summary State"
-  echo -e "       -d|--detail\t\tShow the detail of state"
+  echo -e "       -d|--detail\t\t\tShow the detail of state"
   echo -e "       -min|--minimal\t\t\tShow the Summary State in minimal space"
+  echo -e "       -n|--nagios\t\t\tShow info for nagios."
   echo -e "       -q|--quiet\t\t\tGet only the state"
   echo -e "       -is=STATE|--initialstate=STATE\tSet the previous state"
   echo -e "       -mc=COLS|--maxcols=COLS\t\tSet the max columns of console"
@@ -60,6 +62,7 @@ params() {
       -ss|--sumarystate) sumarystate=1; shift;;
       -d|--detail) detail=1; shift;;
       -min|--minimal) minimal=1; shift;;
+      -n|--nagios) minimal=1; nagios=1; shift;;
       -q|--quiet) silent=1; shift;;
       -is=*|--initialstate=*) state_previous="${i#*=}"; shift;;
       -mc=*|--maxcols=*) max_cols="${i#*=}"; shift;;
@@ -76,6 +79,7 @@ params() {
   [ -z "$sumarystate" ] && sumarystate=0
   [ -z "$detail" ] && detail=0
   [ -z "$minimal" ] && minimal=0
+  [ -z "$nagios" ] && nagios=0
   if [ -z "$max_cols" ]; then
     get_cols_and_rows
     max_cols=$columns
@@ -181,7 +185,16 @@ color_msg() {
     esac
   fi
   reset="\e[0m"
-  line2=$(echo -en $reset)${message1}$(echo -en $color)${message2}$(echo -en $reset)
+  if [ "$nagios" == "1" ]; then
+    if [ "$pstate" == "$STATE_OK" -o "$pstate" == "$STATE_INFO" ]; then
+      flag=""
+    else
+      flag="*"
+    fi
+    line2="${message1}${flag}${message2}${flag}"
+  else
+    line2=$(echo -en $reset)${message1}$(echo -en $color)${message2}$(echo -en $reset)
+  fi
   if [ "$before" == "1" ]; then
     line=${line2}${line}
   else
@@ -633,7 +646,11 @@ footer() {
     if [ "$minimal" == "1" ]; then
       minimal
       time_usage
-      echo -e "$line$S$E"
+      if [ "$nagios" == "1" ]; then
+        echo -e "$line | hosts_up=$hosts_up hosts_down=$hosts_down service_ok=$service_ok service_warning=$service_warning service_critical=$service_critical service_unknown=$service_unknown"
+      else
+        echo -e "$line$S$E"
+      fi
     else
       summary
     fi

@@ -6,6 +6,7 @@
 # v1.0.1 - 2017-05-31 - Nelbren <nelbren@gmail.com>
 # v1.0.2 - 2017-11-10 - Nelbren <nelbren@gmail.com>
 # v1.0.2 - 2018-05-09 - Nelbren <nelbren@gmail.com>
+# v1.0.3 - 2018-10-15 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -17,6 +18,7 @@ use() {
   echo ""
   echo -e "Where: "
   echo -e "       -s=SYSTEM|--system=SYSTEM\tGet from SYSTEM."
+  echo -e "       -n|--nagios\t\t\tShow info for nagios."
   echo -e "       -mc=COLS|--maxcols=COLS\t\tSet the max columns of console"
   echo -e "       -q|--quiet\t\t\tGet only the state"
   echo -e "       -h|--help\t\t\tShow this information."
