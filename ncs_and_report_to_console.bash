@@ -21,6 +21,7 @@
 # v1.1.6 - 2018-05-03 - Nelbren <nelbren@gmail.com>
 # v1.1.7 - 2018-05-09 - Nelbren <nelbren@gmail.com>
 # v1.1.8 - 2018-10-15 - Nelbren <nelbren@gmail.com>
+# v1.1.9 - 2018-10-17 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -367,14 +368,16 @@ get_service_with_state() {
   while read comments_with_info display_name host_comments_with_info host_name host_services_with_info state2; do
     IFS=$IFSOLD
     if [[ "$display_name" == *"minimal"* && "$break_doit" != "1" ]]; then
-      #problems=$((service_warning + service_critical + service_unknown))
+      problems=$((service_warning + service_critical + service_unknown))
       break_doit=1
-      #echo $state $state2 $service_warning $service_critical $service_unknown
-      [ "$state2" == "$STATE_WARNING" ] && service_warning=$((service_warning - 1))
-      [ "$state2" == "$STATE_CRITICAL" ] && service_critical=$((service_critical - 1))
-      [ "$state2" == "$STATE_UNKNOWN" ] && service_unknown=$((service_unknown - 1))
-      #echo $state $state2 $service_warning $service_critical $service_unknown
-      continue # break loop
+      if [ "$problems" == "1" ]; then
+        #echo $state $state2 $service_warning $service_critical $service_unknown
+        [ "$state2" == "$STATE_WARNING" ] && service_warning=$((service_warning - 1))
+        [ "$state2" == "$STATE_CRITICAL" ] && service_critical=$((service_critical - 1))
+        [ "$state2" == "$STATE_UNKNOWN" ] && service_unknown=$((service_unknown - 1))
+        #echo $state $state2 $service_warning $service_critical $service_unknown
+        continue # break loop
+      fi
     fi
     #echo "1:$comments_with_info 2:$display_name 3:$host_comments_with_info 4:$host_name 5:$host_services_with_info 6:$state2"
     #echo "--------------------------"
@@ -531,15 +534,15 @@ check_dt() {
   diff=$((dtn-dt))
   state=$STATE_OK 
   [ $diff -gt 1 ] && state=$STATE_CRITICAL
-  color_msg $state DT: $dt
+  color_msg $state D $dt
 }
 
 check_uptime() {
-  color_msg $STATE_INFO UP: $value
+  color_msg $STATE_INFO U $value
 }
 
 check_hosts() {
-  line="$line HOSTS:"
+  line="$line H:"
   value=$hosts_up
   if [ "$value" -gt "0" ]; then
     color_msg $STATE_OK "" "UP=$value"
@@ -553,7 +556,7 @@ check_hosts() {
 }
 
 check_services() {
-  line="${line} SERVICES:"
+  line="${line} S:"
   value=$service_ok
   if [ "$value" -gt "0" ]; then
     color_msg $STATE_OK "" "OK=$value"
@@ -583,7 +586,7 @@ time_usage() {
   diff=$(diff_segundos "$fechahora_cuando" "$fechahora_ahora")
   diff_humana=$(convertir_de_segundos_a $diff)
   line="$line "
-  color_msg $STATE_INFO TIME: "$diff_humana"
+  color_msg $STATE_INFO T "$diff_humana"
 }
 
 minimal() {
