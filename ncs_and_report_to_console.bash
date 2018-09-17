@@ -366,11 +366,12 @@ get_service_with_state() {
   echo -e "GET services\nColumns: comments_with_info display_name host_comments_with_info host_name host_services_with_info state\n${filtro}" | $unixcat $live_sock 2>&1 | \
   while read comments_with_info display_name host_comments_with_info host_name host_services_with_info state2; do
     IFS=$IFSOLD
-    if echo $display_name | grep -q minimal; then
-      if [ "$service_critical" == "1" ]; then
-	service_critical=0
-        continue # break loop
-      fi
+    if [[ "$display_name" == *"minimal"* ]]; then
+      problems=$((service_warning + service_critical + service_unknown))
+      [ "$service_warning" == "1" ] && service_warning=0
+      [ "$service_critical" == "1" ] && service_critical=0
+      [ "$service_unknown" == "1" ] && service_unknown=0
+      continue # break loop
     fi
     #echo "1:$comments_with_info 2:$display_name 3:$host_comments_with_info 4:$host_name 5:$host_services_with_info 6:$state2"
     #echo "--------------------------"
