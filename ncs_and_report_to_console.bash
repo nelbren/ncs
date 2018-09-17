@@ -165,9 +165,10 @@ diff_segundos() {
 
 color_msg() {
   pstate=$1
-  message1=$2
-  message2=$3
+  msg1=$2
+  msg2=$3
   before=$4
+  hight=$5
   if [ "$INVERT" == "0" ]; then
     case $pstate in
       $STATE_OK)       color="$cOK";; #"\e[0m\e[38;5;10m";;
@@ -185,16 +186,24 @@ color_msg() {
       $STATE_INFO)     color="$CIN2";; #\e[7;49;97m";;
     esac
   fi
-  reset="\e[0m"
+  if [ "$hight" == "1" ]; then
+    if [ "$INVERT" == "0" ]; then
+      color2=$nB
+    else
+      color2=$Ib
+    fi
+  else
+    color2=""
+  fi
   if [ "$nagios" == "1" ]; then
     if [ "$pstate" == "$STATE_OK" -o "$pstate" == "$STATE_INFO" ]; then
       flag=""
     else
       flag="*"
     fi
-    line2="${message1}${flag}${message2}${flag}"
+    line2="${msg1}${flag}${msg2}${flag}"
   else
-    line2=$(echo -en $reset)${message1}$(echo -en $color)${message2}$(echo -en $reset)
+    line2=$(echo -en $S)$(echo -en $color2)${msg1}$(echo -en $color)${msg2}$(echo -en $S)
   fi
   if [ "$before" == "1" ]; then
     line=${line2}${line}
@@ -542,42 +551,44 @@ check_uptime() {
 }
 
 check_hosts() {
-  line="$line H:"
+  line="$line "
+  color_msg $STATE_INFO "H" "" 0 1
   value=$hosts_up
   if [ "$value" -gt "0" ]; then
-    color_msg $STATE_OK "" "UP=$value"
+    color_msg $STATE_OK "" "U=$value"
     before=1
   fi
   value=$hosts_down
   if [ "$value" -gt "0" ]; then
     [ "$before" == "1" ] && color_msg $STATE_INFO "" "/"
-    color_msg $STATE_CRITICAL "" "DOWN=$value"
+    color_msg $STATE_CRITICAL "" "D=$value"
   fi
 }
 
 check_services() {
-  line="${line} S:"
+  line="$line "
+  color_msg $STATE_INFO "S" "" 0 1
   value=$service_ok
   if [ "$value" -gt "0" ]; then
-    color_msg $STATE_OK "" "OK=$value"
+    color_msg $STATE_OK "" "O=$value"
     before=1
   fi
   value=$service_warning
   if [ "$value" -gt "0" ]; then
     [ "$before" == "1" ] && color_msg $STATE_INFO "" "/"
-    color_msg $STATE_WARNING "" "WARN=$value"
+    color_msg $STATE_WARNING "" "W=$value"
     before=1
   fi
   value=$service_unknown
   if [ "$value" -gt "0" ]; then
     [ "$before" == "1" ] && color_msg $STATE_INFO "" "/"
-    color_msg $STATE_UNKNOWN "" "UNKN=$value"
+    color_msg $STATE_UNKNOWN "" "U=$value"
     before=1
   fi
   value=$service_critical
   if [ "$value" -gt "0" ]; then
     [ "$before" == "1" ] && color_msg $STATE_INFO "" "/"
-    color_msg $STATE_CRITICAL "" "CRIT=$value"
+    color_msg $STATE_CRITICAL "" "C=$value"
   fi
 }
 
