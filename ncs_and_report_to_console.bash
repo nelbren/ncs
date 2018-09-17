@@ -366,6 +366,14 @@ get_service_with_state() {
   echo -e "GET services\nColumns: comments_with_info display_name host_comments_with_info host_name host_services_with_info state\n${filtro}" | $unixcat $live_sock 2>&1 | \
   while read comments_with_info display_name host_comments_with_info host_name host_services_with_info state2; do
     IFS=$IFSOLD
+    if echo $display_name | grep -q minimal; then
+      if [ "$service_critical" == "1" ]; then
+	service_critical=0
+        continue # break loop
+      fi
+    fi
+    #echo "1:$comments_with_info 2:$display_name 3:$host_comments_with_info 4:$host_name 5:$host_services_with_info 6:$state2"
+    #echo "--------------------------"
     flapping=$(echo "$comments_with_info" | grep "Nagios Process")
     if [ -n "$flapping" ]; then
       comments_with_info=""
@@ -486,6 +494,7 @@ msg() {
 }
 
 header() {
+  stats
   [ "$silent" == "1" -o "$sumarystate" == "1" -o "$minimal" == "1" ] && return
   color_background $state_previous
   datehour=$(date +'%Y-%m-%d %H:%M:%S')
@@ -574,7 +583,7 @@ time_usage() {
 }
 
 minimal() {
-  stats
+  #stats
   value=$(date +'%Y%m%d%H%M%S'); check_dt
   trt=$(echo $total_running_time | tr -d "[ ]")
   line="$line "; value="$trt"; check_uptime
@@ -588,7 +597,6 @@ summary() {
   color_background $state_previous
   title=$(msg SUMMARY)
   line_single " $title " 0
-  stats
   title=$(msg SERVICES)
   color_service 9 " $title: "
   if [ "$service_ok" != "0" ]; then
