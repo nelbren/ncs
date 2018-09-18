@@ -377,16 +377,19 @@ get_service_with_state() {
   while read comments_with_info display_name host_comments_with_info host_name host_services_with_info state2; do
     IFS=$IFSOLD
     if [[ "$display_name" == *"minimal"* && "$break_doit" != "1" ]]; then
+      echo $display_name
       problems=$((service_warning + service_critical + service_unknown))
+      #problems=$((problems - 1))
+      echo $problems
       break_doit=1
-      if [ "$problems" == "1" ]; then
+      if [ "$problems" -ge "1" ]; then
         #echo $state $state2 $service_warning $service_critical $service_unknown
         [ "$state2" == "$STATE_WARNING" ] && service_warning=$((service_warning - 1))
         [ "$state2" == "$STATE_CRITICAL" ] && service_critical=$((service_critical - 1))
         [ "$state2" == "$STATE_UNKNOWN" ] && service_unknown=$((service_unknown - 1))
         #echo $state $state2 $service_warning $service_critical $service_unknown
-        continue # break loop
       fi
+      continue # break loop
     fi
     #echo "1:$comments_with_info 2:$display_name 3:$host_comments_with_info 4:$host_name 5:$host_services_with_info 6:$state2"
     #echo "--------------------------"
