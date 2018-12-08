@@ -22,6 +22,7 @@
 # v1.1.7 - 2018-05-09 - Nelbren <nelbren@gmail.com>
 # v1.1.8 - 2018-10-15 - Nelbren <nelbren@gmail.com>
 # v1.1.9 - 2018-10-17 - Nelbren <nelbren@gmail.com>
+# v1.2.0 - 2018-12-08 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -36,6 +37,7 @@ use() {
   echo -e "       -ss|--sumarystate\t\tShow only the Summary State"
   echo -e "       -d|--detail\t\t\tShow the detail of state"
   echo -e "       -min|--minimal\t\t\tShow the Summary State in minimal space"
+  echo -e "       -min2|--minimal2\t\t\tShow the Summary State in minimal space without color "
   echo -e "       -n|--nagios\t\t\tShow info for nagios."
   echo -e "       -q|--quiet\t\t\tGet only the state"
   echo -e "       -is=STATE|--initialstate=STATE\tSet the previous state"
@@ -63,6 +65,7 @@ params() {
       -ss|--sumarystate) sumarystate=1; shift;;
       -d|--detail) detail=1; shift;;
       -min|--minimal) minimal=1; shift;;
+      -min2|--minimal2) minimal=1; minimal2=1; nagios=1; shift;;
       -n|--nagios) minimal=1; nagios=1; shift;;
       -q|--quiet) silent=1; shift;;
       -is=*|--initialstate=*) state_previous="${i#*=}"; shift;;
@@ -592,9 +595,11 @@ minimal() {
   trt=$(echo $total_running_time | tr -d "[ ]")
   line="$line "; value="$trt"; check_uptime
   check_hosts; check_services
-  line=" $line" 
-  short=$(echo $myname | cut -d"." -f1)
-  color_msg $bstate "" "[NAGIOS:${short}]" 1
+  if [ "$minimal2" != "1" ]; then
+    line=" $line" 
+    short=$(echo $myname | cut -d"." -f1)
+    color_msg $bstate "" "[NAGIOS:${short}]" 1
+  fi
 }
 
 summary() {
@@ -659,7 +664,16 @@ footer() {
       minimal
       time_usage
       if [ "$nagios" == "1" ]; then
-        echo -e "$line | hosts_up=$hosts_up hosts_down=$hosts_down service_ok=$service_ok service_warning=$service_warning service_critical=$service_critical service_unknown=$service_unknown"
+        if [ "$minimal2" == "1" ]; then
+          case $state_global in
+            $STATE_OK) msg0="OK";;
+            $STATE_WARNING) msg0="WARNING";;
+            $STATE_CRITICAL) msg0="CRITICAL";;
+          esac
+          echo "${msg0} - $line"
+        else
+          echo -e "$line | hosts_up=$hosts_up hosts_down=$hosts_down service_ok=$service_ok service_warning=$service_warning service_critical=$service_critical service_unknown=$service_unknown"
+        fi
       else
         echo -e "$line$S$E"
       fi
