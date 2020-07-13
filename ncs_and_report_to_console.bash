@@ -23,6 +23,7 @@
 # v1.1.8 - 2018-10-15 - Nelbren <nelbren@gmail.com>
 # v1.1.9 - 2018-10-17 - Nelbren <nelbren@gmail.com>
 # v1.2.0 - 2018-12-08 - Nelbren <nelbren@gmail.com>
+# v1.2.1 - 2019-10-01 - nelbren@npr3s.com
 #
 
 use() {
@@ -344,13 +345,18 @@ host_state() {
 }
 
 stats() {
+  if [ "$minimal" == "1" ]; then
+    filter="\nFilter: downtimes ="
+  else
+    filter=""
+  fi
   service_ok=$(echo -e "GET services\nStats: state = 0" | $unixcat $live_sock 2>/dev/null)
   [ -z "$service_ok" ] && service_ok="-1"
-  service_warning=$(echo -e "GET services\nStats: state = 1" | $unixcat $live_sock 2>/dev/null)
+  service_warning=$(echo -e "GET services\nStats: state = 1$filter" | $unixcat $live_sock 2>/dev/null)
   [ -z "$service_warning" ] && service_warning="-1"
-  service_critical=$(echo -e "GET services\nStats: state = 2" | $unixcat $live_sock 2>/dev/null)
+  service_critical=$(echo -e "GET services\nStats: state = 2$filter" | $unixcat $live_sock 2>/dev/null)
   [ -z "$service_critical" ] && service_critical="-1"
-  service_unknown=$(echo -e "GET services\nStats: state = 3" | $unixcat $live_sock 2>/dev/null)
+  service_unknown=$(echo -e "GET services\nStats: state = 3$filter" | $unixcat $live_sock 2>/dev/null)
   [ -z "$service_unknown" ] && service_unknown="-1"
   hosts_up=$(echo -e "GET hosts\nStats: state = 0" | $unixcat $live_sock 2>/dev/null)
   [ -z "$hosts_up" ] && hosts_up="-1"
