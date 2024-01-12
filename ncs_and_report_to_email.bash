@@ -6,6 +6,7 @@
 # v1.0.1 - 2017-05-28 - Nelbren <nelbren@gmail.com>
 # v1.0.2 - 2017-05-31 - Nelbren <nelbren@gmail.com>
 # v1.0.3 - 2017-06-03 - Nelbren <nelbren@gmail.com>
+# v1.0.4 - 2024-01-11 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -126,13 +127,18 @@ is_my_turn() {
 }
 
 process() {
-  declare -a status_s=('OK' 'WARNING' 'CRITICAL' 'UNKNOWN');
+  #declare -a status_s=('OK' 'WARNING' 'CRITICAL' 'UNKNOWN');
+  declare -a status_s
+  status_s[$SERVICE_OK]="OK"
+  status_s[$SERVICE_WARNING]="WARNING"
+  status_s[$SERVICE_CRITICAL]="CRITICAL"
+  status_s[$SERVICE_UNKNOWN]="UNKNOWN"
   if [ -z "$mail_background" -o \
           "$mail_background" == "terminal" ]; then
     $check -mc=80 > $tmp1
     status=$?
   else
-    $check --initialstate=9 --quiet
+    $check --initialstate=109 --quiet
     status=$?
     $check -mc=80 --initialstate=$status > $tmp1
   fi 
@@ -152,12 +158,16 @@ cleanup() {
 
 debug=0
 
+base=/usr/local/ncs
+sts=$base/lib/statusdata.bash
+[ -x $sts ] || exit 1
+. $sts
+
 myself=$(basename $0)
 myname=$(uname -n)
 tmp1=$(mktemp /tmp/$myself.output.ansi.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
 tmp2=$(mktemp /tmp/$myself.output.html.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
 
-base=/usr/local/ncs
 check=${base}/ncs_and_report_to_console.bash 
 send_email=${base}/resources/send_email.php
 ansi2html=${base}/resources/ansi2html.sh 

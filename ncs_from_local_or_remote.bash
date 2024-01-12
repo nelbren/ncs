@@ -7,6 +7,7 @@
 # v1.0.2 - 2017-11-10 - Nelbren <nelbren@gmail.com>
 # v1.0.2 - 2018-05-09 - Nelbren <nelbren@gmail.com>
 # v1.0.3 - 2018-10-15 - Nelbren <nelbren@gmail.com>
+# v1.0.4 - 2024-01-11 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -82,7 +83,7 @@ automatic() {
       port=$(echo $linea | cut -d"=" -f2)
       ssh_command "[ -x $ncs_and_report_to_console ]"
       if [ "$?" == "0" ]; then
-        ssh_command "$ncs_and_report_to_console --initialstate=9 --maxcols=$max_cols $params"
+        ssh_command "$ncs_and_report_to_console --initialstate=109 --maxcols=$max_cols $params"
         exit $?
         break
       fi
@@ -99,7 +100,7 @@ system() {
     if echo $linea | grep -q port; then
       if [ "$system" == "$host" ]; then
         port=$(echo $linea | cut -d"=" -f2)
-        ssh_command "$ncs_and_report_to_console --initialstate=9 --maxcols=$max_cols $params"
+        ssh_command "$ncs_and_report_to_console --initialstate=109 --maxcols=$max_cols $params"
         exit $?
         break
       fi

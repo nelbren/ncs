@@ -30,3 +30,6 @@ server_01_port=22
 server_02_name=02
 server_02_host=nr03
 server_02_port=22
+
+username=CHANGE-ME
+password=CHANGE-ME

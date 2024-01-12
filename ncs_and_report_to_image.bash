@@ -3,6 +3,7 @@
 # ncs_and_report_to_image.bash
 #
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
+# v1.0.1 - 2024-01-11 - Nelbren <nelbren@gmail.com>
 #
 # Images from:
 #
@@ -63,11 +64,12 @@ get_status_of_nagios() {
   fi
   sudo $ncs_from_local_or_remote $remote -q
   status=$?
+  echo "($status)"
 }
 
 set_status_of_image() {
-  if [ "$status" -lt "$STATE_OK" -o "$status" -gt "$STATE_UNKNOWN" ]; then
-    status=$STATE_CRITICAL
+  if [ "$status" -lt "$SERVICE_OK" -o "$status" -gt "$SERVICE_UNKNOWN" ]; then
+    status=$SERVICE_CRITICAL
   fi
   cp $template/${images[$status]} $dirtmp/status_${system}_1.png
   color_background=${colors_background[$status]}
@@ -88,16 +90,21 @@ set_update_of_image() {
     *) geometry="+5+0";;
   esac
 
-  convert -background transparent -fill ${colors_front[STATE_WARNING]} -size 20x40 -font Helvetica-Bold caption:"$n" $dirtmp/status_${system}_4.png +swap -gravity West -geometry $geometry -composite $output/status_${system}.png 
+  convert -background transparent -fill ${colors_front[$SERVICE_WARNING]} -size 20x40 -font Helvetica-Bold caption:"$n" $dirtmp/status_${system}_4.png +swap -gravity West -geometry $geometry -composite $output/status_${system}.png 
 }
 
 images() {
   #ls -1 $template
   if cd $template 2>/dev/null; then
-    images[0]=$(ls -1 ok*)
-    images[1]=$(ls -1 warning*)
-    images[2]=$(ls -1 critical*)
-    images[3]=$(ls -1 unknown*)
+    #pwd
+    images[$SERVICE_OK]=$(ls -1 ok*)
+    images[$SERVICE_WARNING]=$(ls -1 warning*)
+    images[$SERVICE_UNKNOWN]=$(ls -1 unknown*)
+    images[$SERVICE_CRITICAL]=$(ls -1 critical*)
+    #echo ${images[$SERVICE_OK]}
+    #echo ${images[$SERVICE_WARNING]}
+    #echo ${images[$SERVICE_UNKNOWN]}
+    #echo ${images[$SERVICE_CRITICAL]}
   else
     echo "Can't load template images from $template!"
     exit 2
@@ -106,19 +113,35 @@ images() {
 
 # main()
 
+base=/usr/local/ncs
+sts=$base/lib/statusdata.bash
+[ -x $sts ] || exit 1
+ . $sts
+
 # Constants: 
-declare -a images=(ok-up.png warning-exclamation.png critical-down.png unknown-question.png)
-declare -a colors_background=('#498022' '#DB952B' '#D80027' '#933EC5')
-declare -a colors_front=('#ffffff' '#000000' '#ffffff' '#ffffff')
-STATE_OK=0
-STATE_WARNING=1
-STATE_CRITICAL=2
-STATE_UNKNOWN=3
+#declare -a images=(ok-up.png warning-exclamation.png critical-down.png unknown-question.png)
+declare -A images
+#images[$SERVICE_OK]="ok-up.png"
+#images[$SERVICE_WARNING]="warning-exclamation.png"
+#images[$SERVICE_UNKNOWN]="unknown-question.png"
+#images[$SERVICE_CRITICAL]="critical-down.png"
+#declare -a colors_background=('#498022' '#DB952B' '#D80027' '#933EC5')
+declare -A colors_background
+colors_background[$SERVICE_OK]="#498022"
+colors_background[$SERVICE_WARNING]="#DB952B"
+colors_background[$SERVICE_UNKNOWN]="#933EC5"
+colors_background[$SERVICE_CRITICAL]="#D80027"
+#declare -a colors_front=('#ffffff' '#000000' '#ffffff' '#ffffff')
+declare -A colors_front
+colors_front[$SERVICE_OK]="#ffffff"
+colors_front[$SERVICE_WARNING]="#000000"
+colors_front[$SERVICE_UNKNOWN]="#ffffff"
+colors_front[$SERVICE_CRITICAL]="#ffffff"
+
 datehour=$(date +'%Y-%m-%d %H:%M')
 myself=$(basename $0)
 myname=$(uname -n)
 
-base=/usr/local/ncs
 conf=${base}/ncs.conf
 [ -x $conf ] || exit 1
 . $conf

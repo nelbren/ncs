@@ -24,6 +24,7 @@
 # v1.1.9 - 2018-10-17 - Nelbren <nelbren@gmail.com>
 # v1.2.0 - 2018-12-08 - Nelbren <nelbren@gmail.com>
 # v1.2.1 - 2019-10-01 - nelbren@npr3s.com
+# v1.2.2 - 2024-01-11 - nelbren@npr3s.com
 #
 
 use() {
@@ -78,7 +79,9 @@ params() {
     esac
   done
 
-  [ -z "$state_previous" ] && state_previous=9
+  #echo "state_previous 1 => $state_previous"
+  [ -z "$state_previous" ] && state_previous=$CUSTOM_INFO
+  #echo "state_previous 2 => $state_previous"
   [ -z "$silent" ] && silent=0
   [ -z "$all" ] && all=0
   [ -z "$sumarystate" ] && sumarystate=0
@@ -175,19 +178,19 @@ color_msg() {
   hight=$5
   if [ "$INVERT" == "0" ]; then
     case $pstate in
-      $STATE_OK)       color="$cOK";; #"\e[0m\e[38;5;10m";;
-      $STATE_WARNING)  color="$cWA";; #"\e[0m\e[38;5;11m";;
-      $STATE_CRITICAL) color="$cCR";; #\e[0m\e[38;5;9m";;
-      $STATE_UNKNOWN)  color="$cUN";; #\e[0m\e[38;5;5m";;
-      $STATE_INFO)     color="$cIN";; #"\e[1;37m";;
+      $SERVICE_OK)       color="$cOK";; #"\e[0m\e[38;5;10m";;
+      $SERVICE_WARNING)  color="$cWA";; #"\e[0m\e[38;5;11m";;
+      $SERVICE_CRITICAL) color="$cCR";; #\e[0m\e[38;5;9m";;
+      $SERVICE_UNKNOWN)  color="$cUN";; #\e[0m\e[38;5;5m";;
+      $STATE_INFO)       color="$cIN";; #"\e[1;37m";;
     esac
   else
     case $pstate in
-      $STATE_OK)       color="$COK";; #"\e[30;48;5;82m";;
-      $STATE_WARNING)  color="$CWA";; #"\e[30;48;5;11m";;
-      $STATE_CRITICAL) color="$CCR";; #\e[30;48;5;9m";;
-      $STATE_UNKNOWN)  color="$CUN";; #"\e[30;48;5;5m";;
-      $STATE_INFO)     color="$CIN2";; #\e[7;49;97m";;
+      $SERVICE_OK)       color="$COK";; #"\e[30;48;5;82m";;
+      $SERVICE_WARNING)  color="$CWA";; #"\e[30;48;5;11m";;
+      $SERVICE_CRITICAL) color="$CCR";; #\e[30;48;5;9m";;
+      $SERVICE_UNKNOWN)  color="$CUN";; #"\e[30;48;5;5m";;
+      $STATE_INFO)       color="$CIN2";; #\e[7;49;97m";;
     esac
   fi
   if [ "$hight" == "1" ]; then
@@ -214,8 +217,8 @@ color_msg() {
   else
     line=${line}${line2}
   fi
-  if [ "$pstate" -gt "$bstate" -a "$bstate" != "$STATE_CRITICAL" -a \
-      "$pstate" != "$STATE_UNKNOWN" -a "$pstate" != "$STATE_INFO" ]; then
+  if [ "$pstate" -gt "$bstate" -a "$bstate" != "$SERVICE_CRITICAL" -a \
+      "$pstate" != "$SERVICE_UNKNOWN" -a "$pstate" != "$STATE_INFO" ]; then
     bstate=$pstate
   fi
 }
@@ -224,12 +227,12 @@ color_background() {
   state=$1
   echo -en "$S" #"\e[0m" 
   case $state in
-    0) echo -en "$ig";; # OK 
-    1) echo -en "$iy";; # WARNING
-    2) echo -en "$Ir";; # CRITICAL
-    3) echo -en "$Im";; # UNKNOWN
+    $SERVICE_OK) echo -en "$ig";;       # OK 
+    $SERVICE_WARNING) echo -en "$iy";;  # WARNING
+    $SERVICE_UNKNOWN) echo -en "$Im";;  # UNKNOWN
+    $SERVICE_CRITICAL) echo -en "$Ir";; # CRITICAL
     #9) echo -en "\e[0m\e[38;5;6m";;
-    9) echo -en "$cIN";; #"\e[1;37m";;
+    $CUSTOM_INFO) echo -en "$cIN";; #"\e[1;37m";;
   esac
 }
 
@@ -238,31 +241,32 @@ color_service() {
   state=$1
   message=$2
   echo -en "$S" #"\e[0m"
+  #echo "($state)"
   case $state in 
     #0) echo -en "\e[0m\e[38;5;10m";; # OK
     #1) echo -en "\e[0m\e[38;5;11m";; # WARNING
     #2) echo -en "\e[0m\e[38;5;9m";;  # CRITICAL
     #3) echo -en "\e[0m\e[38;5;5m";;  # UNKNOWN
-    0) echo -en "$COK";; #"\e[30;48;5;82m";; # OK 
-    1) echo -en "$CWA";; #"\e[30;48;5;11m";; # WARNING
-    2) echo -en "$CCR";; #"\e[30;48;5;9m";;  # CRITICAL
-    3) echo -en "$CUN";; #"\e[30;48;5;5m";;  # UNKNOWN
-    8) echo -en "$cIN";; #"\e[38;5;15m";;
-    9) color_background $state_previous;;
+    $SERVICE_OK) echo -en "$COK";; #"\e[30;48;5;82m";; # OK 
+    $SERVICE_WARNING) echo -en "$CWA";; #"\e[30;48;5;11m";; # WARNING
+    $SERVICE_UNKNOWN) echo -en "$CUN";; #"\e[30;48;5;5m";;  # UNKNOWN
+    $SERVICE_CRITICAL) echo -en "$CCR";; #"\e[30;48;5;9m";;  # CRITICAL
+    #8) echo -en "$cIN";; #"\e[38;5;15m";;
+    $CUSTOM_INFO) color_background $state_previous;;
     #9) echo -en "\e[38;1;37m";;
     #9) echo -en "\e[1;37m";;
   esac
   echo -n "$message"
-  [ "$state_previous" -ge "8" ] && echo -en "$S$E" #"\e[0m" 
+  [ "$state_previous" -ge "108" ] && echo -en "$S$E" #"\e[0m" 
 }
 
 color_background_host() {
   state=$1
   echo -en "$S" #\e[0m"
   case $state in
-    0) echo -en "$COK";; #"\e[30;48;5;82m";; # OK 
-    1) echo -en "$CCR";; #"\e[30;48;5;9m";;  # CRITICAL
-    2) echo -en "$CUN";; #e[30;48;5;13m";; # UNREACHABLE
+    $SD_HOST_UP) echo -en "$COK";; #"\e[30;48;5;82m";; # UP
+    $SD_HOST_DOWN) echo -en "$CCR";; #"\e[30;48;5;9m";;  # DOWN
+    $SD_HOST_UNREACHABLE) echo -en "$CUN";; #e[30;48;5;13m";;   # UNREACHABLE
   esac
 }
 
@@ -275,9 +279,9 @@ color_host() {
     #0) echo -en "\e[0m\e[38;5;10m";; # UP
     #1) echo -en "\e[0m\e[38;5;9m";;  # DOWN
     #2) echo -en "\e[0m\e[38;5;5m";;  # UNREACHABLE
-    0) echo -en "$COK";; #"\e[30;48;5;82m";; # OK 
-    1) echo -en "$CCR";; #"\e[30;48;5;9m";;  # CRITICAL
-    2) echo -en "$CUN";; #"\e[30;48;5;13m";; # UNREACHABLE
+    $SD_HOST_UP) echo -en "$COK";; #"\e[30;48;5;82m";; # OK 
+    $SD_HOST_DOWN) echo -en "$CCR";; #"\e[30;48;5;9m";;  # CRITICAL
+    $SD_HOST_UNREACHABLE) echo -en "$CUN";; #"\e[30;48;5;13m";; # UNREACHABLE
     #*) echo -en "\e[38;5;11m";;
   esac
   echo -n "$message"
@@ -299,7 +303,7 @@ fix_state() {
 change_state() {
   state=$1
   if [ $state -gt $state_global ] ; then
-    if [ "$state_global" != "2" ] ; then
+    if [ "$state_global" != "16" ] ; then # CRITICAL
       state_global=$state
     fi
   fi
@@ -317,7 +321,7 @@ repeat() {
   s1=$(printf "%-${space1}s" $character)
   s2=$(printf "%-${space2}s" $character)
   echo -n "${s1// /$character}"
-  [ "$state_previous" == "9" -a "$character" != " " ] && echo -en "\e[1;37m"
+  [ "$state_previous" == "$CUSTOM_INFO" -a "$character" != " " ] && echo -en "\e[1;37m"
   echo -n "$message"
   color_background $state_previous
   echo "${s2// /$character}"
@@ -335,41 +339,65 @@ line_space() {
   repeat " " "$1" $2
 }
 
-test_live_sock() {
-  echo -e "GET status" | $unixcat $live_sock 2>/dev/null 1>&2
-  live_sock_state=$? 
+#test_live_sock() {
+#  echo -e "GET status" | $unixcat $live_sock 2>/dev/null 1>&2
+#  live_sock_state=$? 
+#}
+
+test_access() {
+  nagios_pid=$(curl -s -u $username:$password $statusjson?query=programstatus | jq ".data[] | .nagios_pid")
+  executable=$(ps -hf --pid $nagios_pid -o args | cut -d" " -f1)
+  test_state=1
+  [ "$executable" == "/usr/local/nagios/bin/nagios" ] && test_state=0
 }
 
 host_state() {
-  state3=$(echo -e "GET hosts\nColumns: state\nFilter: name = $host_name\n" | $unixcat $live_sock 2>/dev/null)
+  #state3=$(echo -e "GET hosts\nColumns: state\nFilter: name = $host_name\n" | $unixcat $live_sock 2>/dev/null)
+  state3=$(curl -su $username:$password "$statusjson?query=host&hostname=$host_name" | jq '.data[] | .status')
 }
 
 stats() {
+  statusjson2="$statusjson?query=servicecount&servicestatus"
   if [ "$minimal" == "1" ]; then
     filter="\nFilter: downtimes ="
   else
     filter=""
   fi
-  service_ok=$(echo -e "GET services\nStats: state = 0" | $unixcat $live_sock 2>/dev/null)
+  #service_ok=$(echo -e "GET services\nStats: state = 0" | $unixcat $live_sock 2>/dev/null)
+  service_ok=$(curl -s -u $username:$password "$statusjson2=ok" | jq "last(.data[].ok)")
   [ -z "$service_ok" ] && service_ok="-1"
-  service_warning=$(echo -e "GET services\nStats: state = 1$filter" | $unixcat $live_sock 2>/dev/null)
+  #service_warning=$(echo -e "GET services\nStats: state = 1$filter" | $unixcat $live_sock 2>/dev/null)
+  service_warning=$(curl -s -u $username:$password "$statusjson2=warning" | jq "last(.data[].warning)")
   [ -z "$service_warning" ] && service_warning="-1"
-  service_critical=$(echo -e "GET services\nStats: state = 2$filter" | $unixcat $live_sock 2>/dev/null)
+  #service_critical=$(echo -e "GET services\nStats: state = 2$filter" | $unixcat $live_sock 2>/dev/null)
+  service_critical=$(curl -s -u $username:$password "$statusjson2=critical" | jq "last(.data[].critical)")
   [ -z "$service_critical" ] && service_critical="-1"
-  service_unknown=$(echo -e "GET services\nStats: state = 3$filter" | $unixcat $live_sock 2>/dev/null)
+  #service_unknown=$(echo -e "GET services\nStats: state = 3$filter" | $unixcat $live_sock 2>/dev/null)
+  service_unknown=$(curl -s -u $username:$password "$statusjson2=unknown" | jq "last(.data[].unknown)")
   [ -z "$service_unknown" ] && service_unknown="-1"
-  hosts_up=$(echo -e "GET hosts\nStats: state = 0" | $unixcat $live_sock 2>/dev/null)
+  #service_pending=$(curl -s -u $username:$password "$statusjson2=pending" | jq "last(.data[].pending)") # TODO
+  statusjson2="$statusjson?query=hostcount&hoststatus"
+  #hosts_up=$(echo -e "GET hosts\nStats: state = 0" | $unixcat $live_sock 2>/dev/null)
+  hosts_up=$(curl -s -u $username:$password "$statusjson2=up" | jq "last(.data[].up)")
   [ -z "$hosts_up" ] && hosts_up="-1"
-  hosts_down=$(echo -e "GET hosts\nStats: state = 1" | $unixcat $live_sock 2>/dev/null)
+  #hosts_down=$(echo -e "GET hosts\nStats: state = 1" | $unixcat $live_sock 2>/dev/null)
+  hosts_down=$(curl -s -u $username:$password "$statusjson2=down" | jq "last(.data[].down)")
+  #hosts_unreachable=$(curl -s -u $username:$password "$statusjson2=unreachable" | jq "last(.data[].unreachable)") #TODO
+  #hosts_pending=$(curl -s -u $username:$password "$statusjson2=pending" | jq "last(.data[].pending)") #TODO
   [ -z "$hosts_down" ] && hosts_down="-1"
 }
 
 get_service_with_state() {
+  statusjson2="$statusjson?query=servicelist&details=true&servicestatus"
+  statusjson3="$statusjson?query=commentlist&details=true&commenttypes=service&servicedescription"
   state=$1
-  scheduled=$2
+  states=$2
+  scheduled=$3
+
   previous=""
 
-  if [ "$live_sock_state" != "0" ]; then
+  #if [ "$live_sock_state" != "0" ]; then
+  if [ "$test_state" != "0" ]; then
     first=0
     color_service $state " I can not get state=$state,"
     return
@@ -382,9 +410,27 @@ get_service_with_state() {
   fi
 
   IFSOLD=$IFS; IFS=";"
-  echo -e "GET services\nColumns: comments_with_info display_name host_comments_with_info host_name host_services_with_info state\n${filtro}" | $unixcat $live_sock 2>&1 | \
-  while read comments_with_info display_name host_comments_with_info host_name host_services_with_info state2; do
+
+  #echo -e "GET services\nColumns: comments_with_info display_name host_comments_with_info host_name host_services_with_info state\n${filtro}" | $unixcat $live_sock 2>&1 | \
+  curl -su $username:$password "$statusjson2=$states" | jq -r 'last(.data[]) | .[] | to_entries[] | [.value] | [ .[].description, .[].host_name, .[].status ] | join(";")' | \
+  while read display_name host_name state2; do
+  #while read comments_with_info display_name host_comments_with_info host_name host_services_with_info state2; do
     IFS=$IFSOLD
+    #echo $display_name $host_name $state2
+
+    #curl -su $username:$password "$statusjson3=$display_name" | jq 'last(.data[]) | to_entries[] | [.value] | [ .[].host_name, .[].service_description, .[].author, .[].comment_data, .[].comment_type ] | join(";")'
+    who_and_comment=$(curl -su $username:$password "$statusjson3=$display_name" | jq -r 'last(.data[]) | to_entries[] | [.value] | [ .[].author, .[].comment_data ] | join(";")')
+    if [ -n "$who_and_comment" ]; then
+      who=$(echo $who_and_comment | cut -d";" -f1)
+      comments_with_info=$(echo $who_and_comment | cut -d";" -f2-)
+    else
+      host_comments_with_info=""
+      comments_with_info=""
+    fi
+
+    #echo $who
+    #echo $comments_with_info
+    #exit
     flapping=$(echo "$comments_with_info" | grep "Nagios Process")
     if [ -n "$flapping" ]; then
       comments_with_info=""
@@ -522,7 +568,7 @@ middle() {
   [ "$silent" == "1" -o "$sumarystate" == "1" -o "$minimal" == "1" ] && return
   if [ "$first" == "1" ]; then
     title=$(msg MESSAGE_OK)
-    [ "$state_previous" == "9" ] && echo -en "$nG" #"\e[0m\e[38;5;10m"
+    [ "$state_previous" == "$CUSTOM_INFO" ] && echo -en "$nG" #"\e[0m\e[38;5;10m"
     line_space "$title" 1
   else
     echo "";
@@ -536,8 +582,8 @@ check_dt() {
   dt=$value
   dtn=$(date +'%Y%m%d%H%M%S')
   diff=$((dtn-dt))
-  state=$STATE_OK 
-  [ $diff -gt 1 ] && state=$STATE_CRITICAL
+  state=$SERVICE_OK 
+  [ $diff -gt 1 ] && state=$SERVICE_CRITICAL
   color_msg $state D $dt
 }
 
@@ -550,13 +596,13 @@ check_hosts() {
   color_msg $STATE_INFO "H" "" 0 1
   value=$hosts_up
   if [ "$value" -gt "0" ]; then
-    color_msg $STATE_OK "" "U=$value"
+    color_msg $SERVICE_OK "" "U=$value"
     before=1
   fi
   value=$hosts_down
   if [ "$value" -gt "0" ]; then
     [ "$before" == "1" ] && color_msg $STATE_INFO "" "/"
-    color_msg $STATE_CRITICAL "" "D=$value"
+    color_msg $SERVICE_CRITICAL "" "D=$value"
   fi
 }
 
@@ -565,25 +611,25 @@ check_services() {
   color_msg $STATE_INFO "S" "" 0 1
   value=$service_ok
   if [ "$value" -gt "0" ]; then
-    color_msg $STATE_OK "" "O=$value"
+    color_msg $SERVICE_OK "" "O=$value"
     before=1
   fi
   value=$service_warning
   if [ "$value" -gt "0" ]; then
     [ "$before" == "1" ] && color_msg $STATE_INFO "" "/"
-    color_msg $STATE_WARNING "" "W=$value"
+    color_msg $SERVICE_WARNING "" "W=$value"
     before=1
   fi
   value=$service_unknown
   if [ "$value" -gt "0" ]; then
     [ "$before" == "1" ] && color_msg $STATE_INFO "" "/"
-    color_msg $STATE_UNKNOWN "" "U=$value"
+    color_msg $SERVICE_UNKNOWN "" "U=$value"
     before=1
   fi
   value=$service_critical
   if [ "$value" -gt "0" ]; then
     [ "$before" == "1" ] && color_msg $STATE_INFO "" "/"
-    color_msg $STATE_CRITICAL "" "C=$value"
+    color_msg $SERVICE_CRITICAL "" "C=$value"
   fi
 }
 
@@ -613,10 +659,10 @@ summary() {
   title=$(msg SUMMARY)
   line_single " $title " 0
   title=$(msg SERVICES)
-  color_service 9 " $title: "
+  color_service $CUSTOM_INFO " $title: "
   if [ "$service_ok" != "0" ]; then
     title=$(msg OK)
-    color_service 0 "$service_ok $title"
+    color_service $SERVICE_OK "$service_ok $title"
     color_background $state_previous; echo -n " | "
   fi
   if [ "$service_warning" != "0" ]; then
@@ -626,25 +672,25 @@ summary() {
   fi
   if [ "$service_unknown" != "0" ]; then
     title=$(msg UNKNOWN)
-    color_service 3 "$service_unknown $title"
+    color_service $SERVICE_UNKNOWN "$service_unknown $title"
     color_background $state_previous; echo -n " | "
   fi
   if [ "$service_critical" != "0" ]; then
     title=$(msg CRITICAL)
-    color_service 2 "$service_critical $title"
+    color_service $SERVICE_CRITICAL "$service_critical $title"
     color_background $state_previous; echo -n " | "
   fi
   [ $max_cols -le 80 ] && echo ""
   title="$(msg HOSTS)"
-  color_service 9 " $title: "
+  color_service $CUSTOM_INFO " $title: "
   if [ "$hosts_ok" != "0" ]; then
     title=$(msg UP)
-    color_host 0 "$hosts_up $title"
+    color_host $SD_HOST_UP "$hosts_up $title"
     color_background $state_previous; echo -n " | "
   fi
   if [ "$hosts_down" != "0" ]; then
     title=$(msg DOWN)
-    color_host 1 "$hosts_down $title"
+    color_host $SD_HOST_DOWN "$hosts_down $title"
     color_background $state_previous; echo -n " | "
   fi
 
@@ -672,9 +718,9 @@ footer() {
       if [ "$nagios" == "1" ]; then
         if [ "$minimal2" == "1" ]; then
           case $state_global in
-            $STATE_OK) msg0="OK";;
-            $STATE_WARNING) msg0="WARNING";;
-            $STATE_CRITICAL) msg0="CRITICAL";;
+            $SERVICE_OK) msg0="OK";;
+            $SERVICE_WARNING) msg0="WARNING";;
+            $SERVICE_CRITICAL) msg0="CRITICAL";;
           esac
           echo "${msg0} - $line"
         else
@@ -696,12 +742,45 @@ footer() {
   fi
 }
 
+converts() {
+  # https://unix.stackexchange.com/questions/683143/how-to-convert-seconds-to-day-hour-minute-seconds
+  t=$1
+  case $t in
+    *.*) tfrac=${t##*.}       # fractional seconds
+         t=${t%%.*}           # full seconds
+         ;;
+      *) tfrac=0              # no decimal point
+         ;;
+  esac
+  d=$((t/60/60/24))
+  h=$((t/60/60%24))
+  m=$((t/60%60))
+  s=$((t%60))
+  r=""
+  [ $d -gt 0 ] && r="${d}d "
+  [ $h -gt 0 ] && r="$r${h}h "
+  [ $m -gt 0 ] && r="$r${m}m "
+  [ $s -gt 0 ] && r="$r${s}s"
+  echo $r
+}
+
 process_info() {
+  trt_color=0
+  program_start=$(curl -su $username:$password "$statusjson?query=programstatus" | jq '.data[] | .program_start')
+  unix_start=$(echo $program_start / 1000 | bc)
+  unix_now=$(date +%s%3N)
+  unix_now=$(echo $unix_now / 1000 | bc)
+  unix_diff=$(($unix_now - $unix_start))
+  #echo "program_start $program_start"
+  #echo "unix_start    $unix_start"
+  #echo "unix_now      $unix_now"
+  #echo "unix_diff     $unix_diff"
+  total_running_time=$(converts $unix_diff)
   #info=$(curl -u ${web_username}:${web_password} http://${host}:${web_port}/nagios/cgi-bin/extinfo.cgi?type=0 2>/dev/null) #; echo $info
   #rawinfo=$(echo "$info" | grep "Total Running Time")
   #total_running_time=$(expr "$rawinfo" : ".*Total Running Time:</TD><TD CLASS='dataVal'>\(.*\)</TD></TR>.*")
   #https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/4/en/nagiostats.html
-  total_running_time=$($nagiostats -m --data=PROGRUNTIME)
+  #total_running_time=$($nagiostats -m --data=PROGRUNTIME)
 
   if [ -z "$total_running_time" ]; then
     trt_color=2 
@@ -719,15 +798,21 @@ process_info() {
   trt_num_hours=$(echo $trt_num | cut -d" " -f2)
   trt_num_mins=$(echo $trt_num | cut -d" " -f3)
   trt_num_segs=$(echo $trt_num | cut -d" " -f4)
+  if [ -z "$trt_num_segs" ]; then
+    trt_num_segs=0
+  fi
   trt_num_seconds=$(echo "$trt_num_days*60*60*60+$trt_num_hours*60*60+$trt_num_mins*60+$trt_num_segs" | bc)
+  #echo $trt_num_seconds
   if [ "$silent" == "0" ]; then
     echo $trt_num_seconds > $trt_file
     chown nagios $trt_file
   fi
-  if [ "$trt_num_seconds" -gt "$trt_num_last" ]; then
-    trt_color=0 
-  else
-    trt_color=2 
+  if [ -n "$trt_num_seconds" -a -n "$trt_num_last" ]; then
+    if [ "$trt_num_seconds" -gt "$trt_num_last" ]; then
+      trt_color=0 
+    else
+      trt_color=2 
+    fi
   fi
   change_state $trt_color
 }
@@ -738,28 +823,34 @@ cleanup() {
 
 problems_or_all() {
   if [ "$all" == "1" ]; then
-    get_service_with_state -1 # ANY
+    get_service_with_state -1 ok+warning+critical+unknown+pending # ANY
   else
-    get_service_with_state 2 # CRITICAL
-    get_service_with_state 3 # UNKNOWN
-    get_service_with_state 1 # WARNING
+    get_service_with_state 2 critical                             # CRITICAL
+    get_service_with_state 3 unknown                              # UNKNOWN
+    get_service_with_state 1 warning                              # WARNING
   fi
 }
 
 problems_scheduled() {
   [ "$silent" == "1" -o "$sumarystate" == "1" -o "$minimal" == "1" ] && return
   if [ "$all" == "1" ]; then
-    get_service_with_state -1 scheduled # ANY
+    get_service_with_state -1 ok+warning+critical+unknown+pending scheduled # ANY
   else
-    get_service_with_state 2 scheduled # CRITICAL
-    get_service_with_state 3 scheduled # UNKNOWN
-    get_service_with_state 1 scheduled # WARNING
+    get_service_with_state 2 critical scheduled                             # CRITICAL
+    get_service_with_state 3 unknown  scheduled                             # UNKNOWN
+    get_service_with_state 1 warning  scheduled                             # WARNING
   fi
 }
 
-stc=/usr/local/ncs/lib/super-tiny-colors.bash
+base=/usr/local/ncs
+
+stc=$base/lib/super-tiny-colors.bash
 [ -x $stc ] || exit 1
 . $stc
+
+sts=$base/lib/statusdata.bash
+[ -x $sts ] || exit 1
+. $sts
 
 fechahora_cuando=$(date +'%Y-%m-%d %H:%M:%S')
 myself=$(basename $0)
@@ -768,28 +859,23 @@ unixcat=/usr/local/bin/unixcat
 trt_file=/var/log/nagios/$myself.trt_last.txt
 filetemp=$(mktemp /tmp/$myself.XXXXXXXXXX) || { echo "Failed to create temp file"; exit 1; }
 
-base=/usr/local/ncs
 conf=${base}/ncs.conf
 [ -x $conf ] || exit 1
 . $conf
+statusjson=https://$domain/nagios/cgi-bin/statusjson.cgi
 
 set +m
 shopt -s lastpipe
 
-STATE_OK=0
-STATE_WARNING=1
-STATE_CRITICAL=2
-STATE_UNKNOWN=3
-STATE_DEPENDENT=4
-STATE_INFO=5
-INVERT=1
-
 params "$@"
 
-bstate=$STATE_OK
+#bstate=$STATE_OK
+bstate=$SERVICE_OK
 
-test_live_sock
-if [ "$live_sock_state" == "0" ]; then
+#test_live_sock
+test_access
+#if [ "$live_sock_state" == "0" ]; then
+if [ "$test_state" == "0" ]; then
   state_global=0
 else
   state_global=2

@@ -4,6 +4,7 @@
 #
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
 # v1.0.1 - 2018-01-04 - Nelbren <nelbren@gmail.com>
+# v1.0.2 - 2024-01-11 - Nelbren <nelbren@gmail.com>
 #
 
 use() {
@@ -39,10 +40,10 @@ params() {
 color_background() {
   estatus=$1
   case $estatus in
-    0) echo -en "\e[30;48;5;2m";;
-    1) echo -en "\e[30;48;5;3m";;
-    2) echo -en "\e[30;48;5;9m";;
-    3) echo -en "\e[30;48;5;13m";;
+    $SERVICE_OK) echo -en "\e[30;48;5;2m";;
+    $SERVICE_WARNING) echo -en "\e[30;48;5;3m";;
+    $SERVICE_UNKNOWN) echo -en "\e[30;48;5;13m";;
+    $SERVICE_CRITICAL) echo -en "\e[30;48;5;9m";;
   esac
 }
 
@@ -93,9 +94,15 @@ cleanup() {
   [ -r $filetemp2 ] && rm $filetemp2
 }
 
-stc=/usr/local/ncs/lib/super-tiny-colors.bash
+base=/usr/local/ncs
+
+stc=$base/lib/super-tiny-colors.bash
 [ -x $stc ] || exit 1
 . $stc
+
+sts=$base/lib/statusdata.bash
+[ -x $sts ] || exit 1
+. $sts
 
 myself=$(basename $0)
 myname=$(uname -n)
@@ -104,7 +111,6 @@ filetemp2=$(mktemp /tmp/$myself.2.XXXXXXXXXX) || { echo "Failed to create temp f
 refresh=60
 terminal=$(tty)
 
-base=/usr/local/ncs
 check=${base}/ncs_from_local_or_remote.bash
 conf=${base}/ncs.conf
 [ -x $conf ] || exit 1
@@ -130,10 +136,10 @@ while true; do
   exitcode=${PIPESTATUS[0]}
 
   case $exitcode in
-    0) mp3="$dir_mp3/$mp3_ok";;
-    1) mp3="$dir_mp3/$mp3_warning";;
-    2) mp3="$dir_mp3/$mp3_critical";;
-    3) mp3="$dir_mp3/$mp3_unknown";;
+    $SERVICE_OK) mp3="$dir_mp3/$mp3_ok";;
+    $SERVICE_WARNING) mp3="$dir_mp3/$mp3_warning";;
+    $SERVICE_UNKNOWN) mp3="$dir_mp3/$mp3_unknown";;
+    $SERVICE_CRITICAL) mp3="$dir_mp3/$mp3_critical";;
   esac
 
   [ "$noaudioalarm" == "0" ] && play "$mp3"
@@ -144,6 +150,7 @@ while true; do
   while [ $contador -gt 0 ]; do
     echo -en "\033[2K" ; printf "\r"
     color_background $state
+    #echo "state=$state"
     echo -en "REFRESH IN: $contador seconds$E"
     contador=$((contador-1))
     sleep 1
