@@ -4,6 +4,7 @@
 #
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
 # v1.0.1 - 2024-01-11 - Nelbren <nelbren@gmail.com>
+# v1.0.2 - 2024-01-15 - Nelbren <nelbren@gmail.com>
 #
 # Images from:
 #
@@ -64,10 +65,11 @@ get_status_of_nagios() {
   fi
   sudo $ncs_from_local_or_remote $remote -q
   status=$?
-  echo "($status)"
+  echo "status => $status"
 }
 
 set_status_of_image() {
+  [ "$status" == "0" ] && status=$SERVICE_OK
   if [ "$status" -lt "$SERVICE_OK" -o "$status" -gt "$SERVICE_UNKNOWN" ]; then
     status=$SERVICE_CRITICAL
   fi
