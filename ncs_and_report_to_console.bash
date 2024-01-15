@@ -203,7 +203,7 @@ color_msg() {
     color2=""
   fi
   if [ "$nagios" == "1" ]; then
-    if [ "$pstate" == "$STATE_OK" -o "$pstate" == "$STATE_INFO" ]; then
+    if [ "$pstate" == "$SERVICE_OK" -o "$pstate" == "$STATE_INFO" ]; then
       flag=""
     else
       flag="*"
@@ -896,5 +896,5 @@ footer
 
 cleanup
 
-[ "$nagios" == "1" ] && state_global=$STATE_OK
+[ "$nagios" == "1" ] && state_global=$SERVICE_OK
 exit $state_global
