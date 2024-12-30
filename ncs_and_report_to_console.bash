@@ -25,6 +25,7 @@
 # v1.2.0 - 2018-12-08 - Nelbren <nelbren@gmail.com>
 # v1.2.1 - 2019-10-01 - nelbren@npr3s.com
 # v1.2.2 - 2024-01-11 - nelbren@npr3s.com
+# v1.2.3 - 2024-12-30 - nelbren@npr3s.com
 #
 
 use() {
@@ -370,8 +371,17 @@ stats() {
   service_warning=$(curl -s -u $username:$password "$statusjson2=warning" | jq "last(.data[].warning)")
   [ -z "$service_warning" ] && service_warning="-1"
   #service_critical=$(echo -e "GET services\nStats: state = 2$filter" | $unixcat $live_sock 2>/dev/null)
+  #echo curl -s -u $username:$password "$statusjson2=critical"
   service_critical=$(curl -s -u $username:$password "$statusjson2=critical" | jq "last(.data[].critical)")
   [ -z "$service_critical" ] && service_critical="-1"
+  if [ "$service_critical" == "1" ]; then
+     statusjson21="$statusjson?query=servicelist&details=true&servicestatus"
+     nagios_minimal=$(curl -su $username:$password "$statusjson21=critical" | grep '"description": "APP-NAGIOS-minimal"')
+     #echo $nagios_minimal
+     if [ -n "$nagios_minimal" ]; then
+       service_critical=$((service_critical-1))
+     fi
+  fi
   #service_unknown=$(echo -e "GET services\nStats: state = 3$filter" | $unixcat $live_sock 2>/dev/null)
   service_unknown=$(curl -s -u $username:$password "$statusjson2=unknown" | jq "last(.data[].unknown)")
   [ -z "$service_unknown" ] && service_unknown="-1"
@@ -410,8 +420,9 @@ get_service_with_state() {
   fi
 
   IFSOLD=$IFS; IFS=";"
-
   #echo -e "GET services\nColumns: comments_with_info display_name host_comments_with_info host_name host_services_with_info state\n${filtro}" | $unixcat $live_sock 2>&1 | \
+  echo curl -su $username:$password "$statusjson2=$states" > /tmp/txt.txt
+  echo jq -r 'last(.data[]) | .[] | to_entries[] | [.value] | [ .[].description, .[].host_name, .[].status ] | join(";")' >> /tmp/txt.txt
   curl -su $username:$password "$statusjson2=$states" | jq -r 'last(.data[]) | .[] | to_entries[] | [.value] | [ .[].description, .[].host_name, .[].status ] | join(";")' | \
   while read display_name host_name state2; do
   #while read comments_with_info display_name host_comments_with_info host_name host_services_with_info state2; do
@@ -431,8 +442,9 @@ get_service_with_state() {
     #echo $who
     #echo $comments_with_info
     #exit
-    flapping=$(echo "$comments_with_info" | grep "Nagios Process")
-    if [ -n "$flapping" ]; then
+    #flapping=$(echo "$comments_with_info" | grep "Nagios Process")
+    #echo "FLAPPING $flapping"
+    if [ "$who" == "(Nagios Process)" ]; then
       comments_with_info=""
     fi
     include=0
@@ -458,6 +470,7 @@ get_service_with_state() {
         include=1
       fi
     fi
+    #echo "INCLUDE $include"
     if [ "$host_name" != "host_name" -a  "$include" == "1" ] ; then
       if [ "$previous" != "$host_name" ]; then
         if [ "$first" == "1" ]; then
