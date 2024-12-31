@@ -228,6 +228,7 @@ color_background() {
   state=$1
   echo -en "$S" #"\e[0m" 
   case $state in
+    $STATE_OK) echo -en "$ig";;         # OK 
     $SERVICE_OK) echo -en "$ig";;       # OK 
     $SERVICE_WARNING) echo -en "$iy";;  # WARNING
     $SERVICE_UNKNOWN) echo -en "$Im";;  # UNKNOWN

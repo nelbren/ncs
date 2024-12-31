@@ -5,6 +5,7 @@
 # v1.0.0 - 2016-12-12 - Nelbren <nelbren@gmail.com>
 # v1.0.1 - 2018-01-04 - Nelbren <nelbren@gmail.com>
 # v1.0.2 - 2024-01-11 - Nelbren <nelbren@gmail.com>
+# v1.0.3 - 2024-12-30 - Nelbren <nelbren@npr3s.com>
 #
 
 use() {
@@ -39,7 +40,9 @@ params() {
 
 color_background() {
   estatus=$1
+  #echo $estatus $STATUS_OK $SERVICE_OK
   case $estatus in
+    $STATE_OK) echo -en "\e[30;48;5;2m";;
     $SERVICE_OK) echo -en "\e[30;48;5;2m";;
     $SERVICE_WARNING) echo -en "\e[30;48;5;3m";;
     $SERVICE_UNKNOWN) echo -en "\e[30;48;5;13m";;
