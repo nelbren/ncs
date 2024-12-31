@@ -488,9 +488,15 @@ get_service_with_state() {
     else
       if [ -z "$comments_with_info" -a \
            -z "$host_comments_with_info" ]; then
-	   #"$display_name" != "APP-NAGIOS-minimal" ] ; then
-        #echo "AQUI -> $display_name $scheduled "
-        include=1
+	if [ "$service_warning" == "0" -a \
+	      "$service_unknown" == "0" -a \
+	      "$service_critical" == "1" -a \
+	      "$display_name" == "APP-NAGIOS-minimal" ] ; then
+	  service_critical=0
+	else
+          #echo "AQUI -> $display_name $scheduled $service_warning $service_critical $service_unknown"
+          include=1
+	fi
       fi
     fi
     if [ "$host_name" != "host_name" -a "$include" == "1" ] ; then
