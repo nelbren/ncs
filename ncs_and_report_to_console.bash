@@ -308,6 +308,7 @@ change_state() {
       state_global=$state
     fi
   fi
+  #echo "CHANGE_STATE -> $state_global"
 }
 
 repeat() {
@@ -374,14 +375,14 @@ stats() {
   #echo curl -s -u $username:$password "$statusjson2=critical"
   service_critical=$(curl -s -u $username:$password "$statusjson2=critical" | jq "last(.data[].critical)")
   [ -z "$service_critical" ] && service_critical="-1"
-  if [ "$service_critical" == "1" ]; then
-     statusjson21="$statusjson?query=servicelist&details=true&servicestatus"
-     nagios_minimal=$(curl -su $username:$password "$statusjson21=critical" | grep '"description": "APP-NAGIOS-minimal"')
+  #if [ "$service_critical" == "1" ]; then
+  #   statusjson21="$statusjson?query=servicelist&details=true&servicestatus"
+  #   nagios_minimal=$(curl -su $username:$password "$statusjson21=critical" | grep '"description": "APP-NAGIOS-minimal"')
      #echo $nagios_minimal
-     if [ -n "$nagios_minimal" ]; then
-       service_critical=$((service_critical-1))
-     fi
-  fi
+     #if [ -n "$nagios_minimal" ]; then
+     #  service_critical=$((service_critical-1))
+     #fi
+  #fi
   #service_unknown=$(echo -e "GET services\nStats: state = 3$filter" | $unixcat $live_sock 2>/dev/null)
   service_unknown=$(curl -s -u $username:$password "$statusjson2=unknown" | jq "last(.data[].unknown)")
   [ -z "$service_unknown" ] && service_unknown="-1"
@@ -430,17 +431,18 @@ get_service_with_state() {
     #echo $display_name $host_name $state2
 
     #curl -su $username:$password "$statusjson3=$display_name" | jq 'last(.data[]) | to_entries[] | [.value] | [ .[].host_name, .[].service_description, .[].author, .[].comment_data, .[].comment_type ] | join(";")'
+    echo curl -su $username:$password "$statusjson3=$display_name" >> /tmp/txt.txt
     who_and_comment=$(curl -su $username:$password "$statusjson3=$display_name" | jq -r 'last(.data[]) | to_entries[] | [.value] | [ .[].author, .[].comment_data ] | join(";")')
+    #echo "$who_and_comment"
     if [ -n "$who_and_comment" ]; then
-      who=$(echo $who_and_comment | cut -d";" -f1)
-      comments_with_info=$(echo $who_and_comment | cut -d";" -f2-)
+      who=$(echo "$who_and_comment" | tail -1 | cut -d";" -f1)
+      comments_with_info=$(echo "$who_and_comment" | tail -1 | cut -d";" -f2-)
     else
       host_comments_with_info=""
       comments_with_info=""
     fi
 
-    #echo $who
-    #echo $comments_with_info
+    #echo "WHO->$who COMMENTS-> $comments_with_info"
     #exit
     #flapping=$(echo "$comments_with_info" | grep "Nagios Process")
     #echo "FLAPPING $flapping"
@@ -449,16 +451,22 @@ get_service_with_state() {
     fi
     include=0
     if [ -n "$scheduled" ]; then
+      #echo "SCHEDULED -> $scheduled"
+      #echo "CWI -> $comments_with_info"
+      #echo "HCWI -> $host_comments_with_info"
       if [ -n "$comments_with_info" -o \
            -n "$host_comments_with_info" ] ; then
         if [ -n "$host_comments_with_info" ]; then
           start=$(expr "$host_comments_with_info" : ".*from \(.*\) to")
           end=$(expr "$host_comments_with_info" : ".*to \(.*\)\.  N")
           who=$(expr "$host_comments_with_info" : ".*|\(.*\)|")
+	  # TODO: TEST
         else
           start=$(expr "$comments_with_info" : ".*from \(.*\) to")
           end=$(expr "$comments_with_info" : ".*to \(.*\)\.  N")
-          who=$(expr "$comments_with_info" : ".*|\(.*\)|")
+          #who=$(expr "$comments_with_info" : ".*|\(.*\)|")
+	  #echo "END -> $end"
+	  #echo "WHO -> $who"
         fi
 	if [ -n "$start" -a -n "$end" ]; then
           include=1
@@ -466,12 +474,22 @@ get_service_with_state() {
       fi
     else
       if [ -z "$comments_with_info" -a \
-           -z "$host_comments_with_info" ] ; then
+           -z "$host_comments_with_info" -a \
+	   "$display_name" != "APP-NAGIOS-minimal" ] ; then
+        #echo "AQUI -> $display_name $scheduled "
         include=1
       fi
     fi
-    #echo "INCLUDE $include"
-    if [ "$host_name" != "host_name" -a  "$include" == "1" ] ; then
+    #echo "ANTES $states INCLUDE $include -> $display_name $service_critical $service_warning"
+    if [ "$include" == "0" ]; then
+      case $states in
+	critical) service_critical=$((service_critical-1));;
+	warning) service_warning=$((service_warning-1));;
+	unknown) service_unknown=$((service_unknown-1));;
+      esac
+    fi
+    #echo "DESPUES $states INCLUDE $include -> $display_name $service_critical $service_warning"
+    if [ "$host_name" != "host_name" -a "$include" == "1" ] ; then
       if [ "$previous" != "$host_name" ]; then
         if [ "$first" == "1" ]; then
           first=0
@@ -502,7 +520,8 @@ get_service_with_state() {
         color_background $state_previous
         echo -n "[$end|$who]"
       fi
-      [ -z "$scheduled" ] && change_state $state2
+      [ -z "$scheduled" -a "$include" == "1" ] && change_state $state2
+      #echo "$include CS -> $state2 -> $state_global"
     fi
     IFS=";"
   done
@@ -746,6 +765,7 @@ footer() {
       summary
     fi
   fi
+  #echo "SG -> $state_global"
   if [ "$hosts_down" != "0" ]; then
     get_host_with_state
     if [ $host_problems -gt 0 ] ; then
@@ -882,8 +902,8 @@ shopt -s lastpipe
 
 params "$@"
 
-#bstate=$STATE_OK
-bstate=$SERVICE_OK
+bstate=$STATE_OK
+#bstate=$SERVICE_OK
 
 #test_live_sock
 test_access
@@ -898,16 +918,21 @@ header
 
 first=1
 problems_or_all
-
+#echo "SG 1 -> $state_global"
 middle
 
 first=1
 problems_scheduled
+#echo "SG 2 -> $state_global"
 
 process_info
 footer
+#echo "SG 3 -> $state_global"
 
 cleanup
+#echo "NAGIOS -> $nagios $SERVICE_OK"
 
-[ "$nagios" == "1" ] && state_global=$SERVICE_OK
+#[ "$nagios" == "1" ] && state_global=$SERVICE_OK
+#[ "$nagios" == "1" ] && state_global=$STATE_OK
+#echo "SG 4 -> $state_global"
 exit $state_global
