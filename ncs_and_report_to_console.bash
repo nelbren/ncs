@@ -229,12 +229,13 @@ color_background() {
   echo -en "$S" #"\e[0m" 
   case $state in
     $STATE_OK) echo -en "$ig";;         # OK 
-    $SERVICE_OK) echo -en "$ig";;       # OK 
-    $SERVICE_WARNING) echo -en "$iy";;  # WARNING
+    $SERVICE_OK) echo -en "$Ig";;       # OK 
+    $SERVICE_WARNING) echo -en "$Iy";;  # WARNING
     $SERVICE_UNKNOWN) echo -en "$Im";;  # UNKNOWN
     $SERVICE_CRITICAL) echo -en "$Ir";; # CRITICAL
     #9) echo -en "\e[0m\e[38;5;6m";;
     $CUSTOM_INFO) echo -en "$cIN";; #"\e[1;37m";;
+    *) echo -en "color_background $state unknown!"
   esac
 }
 
@@ -305,7 +306,7 @@ fix_state() {
 change_state() {
   state=$1
   if [ $state -gt $state_global ] ; then
-    if [ "$state_global" != "16" ] ; then # CRITICAL
+    if [ "$state_global" != "$STATE_CRITICAL" ] ; then # CRITICAL
       state_global=$state
     fi
   fi
@@ -473,23 +474,25 @@ get_service_with_state() {
           include=1
         fi
       fi
+
+      #echo "ANTES $states INCLUDE $include -> $display_name $service_critical $service_warning"
+      if [ "$include" == "1" ]; then
+        case $states in
+	  critical) service_critical=$((service_critical-1));;
+	  warning) service_warning=$((service_warning-1));;
+	  unknown) service_unknown=$((service_unknown-1));;
+        esac
+      fi
+      #echo "DESPUES $states INCLUDE $include -> $display_name $service_critical $service_warning"
+
     else
       if [ -z "$comments_with_info" -a \
-           -z "$host_comments_with_info" -a \
-	   "$display_name" != "APP-NAGIOS-minimal" ] ; then
+           -z "$host_comments_with_info" ]; then
+	   #"$display_name" != "APP-NAGIOS-minimal" ] ; then
         #echo "AQUI -> $display_name $scheduled "
         include=1
       fi
     fi
-    #echo "ANTES $states INCLUDE $include -> $display_name $service_critical $service_warning"
-    if [ "$include" == "0" ]; then
-      case $states in
-	critical) service_critical=$((service_critical-1));;
-	warning) service_warning=$((service_warning-1));;
-	unknown) service_unknown=$((service_unknown-1));;
-      esac
-    fi
-    #echo "DESPUES $states INCLUDE $include -> $display_name $service_critical $service_warning"
     if [ "$host_name" != "host_name" -a "$include" == "1" ] ; then
       if [ "$previous" != "$host_name" ]; then
         if [ "$first" == "1" ]; then
@@ -521,7 +524,15 @@ get_service_with_state() {
         color_background $state_previous
         echo -n "[$end|$who]"
       fi
-      [ -z "$scheduled" -a "$include" == "1" ] && change_state $state2
+      case $state2 in
+	SERVICE_PENDING) state3=$STATE_UNKNOWN;;
+	SERVICE_OK) state3=$STATE_OK;;
+	SERVICE_WARNING) state3=$STATE_WARNING;;
+	SERVICE_UNKNOWN) state3=$STATE_UNKNOWN;;
+	SERVICE_CRITICAL) state3=$STATE_CRITICAL;;
+     esac
+      #echo "CHANGE_STATE $state2 -> $state3"
+      [ -z "$scheduled" -a "$include" == "1" ] && change_state $state3
       #echo "$include CS -> $state2 -> $state_global"
     fi
     IFS=";"
@@ -700,7 +711,8 @@ summary() {
   fi
   if [ "$service_warning" != "0" ]; then
     title=$(msg WARNING)
-    color_service 1 "$service_warning $title"
+    # AQUI
+    color_service $SERVICE_WARNING "$service_warning $title"
     color_background $state_previous; echo -n " | "
   fi
   if [ "$service_unknown" != "0" ]; then
@@ -916,6 +928,7 @@ else
 fi
 
 header
+#echo "SG 0 -> $state_global"
 
 first=1
 problems_or_all
